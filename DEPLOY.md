@@ -17,11 +17,19 @@ Deploys go to `https://<username>.github.io/`.
 
 3. **Add repository variables and secrets** (Settings → Secrets and variables → Actions):
 
-   | Type     | Name                   | Example value                       |
-   | -------- | ---------------------- | ----------------------------------- |
-   | Variable | `NEXT_PUBLIC_SITE_URL` | `https://<username>.github.io`      |
-   | Variable | `LASTFM_USER`          | `your-lastfm-username`              |
-   | Secret   | `LASTFM_API_KEY`       | (Last.fm API key — not the secret)  |
+   | Type     | Name                          | Example value                       |
+   | -------- | ----------------------------- | ----------------------------------- |
+   | Variable | `NEXT_PUBLIC_SITE_URL`        | `https://<username>.github.io`      |
+   | Variable | `LASTFM_USER`                 | `your-lastfm-username`              |
+   | Secret   | `LASTFM_API_KEY`              | (Last.fm API key — not the secret)  |
+
+   > The Last.fm vars are mapped to `NEXT_PUBLIC_LASTFM_*` at build time
+   > (see [.github/workflows/deploy.yml](.github/workflows/deploy.yml)) so the
+   > client-side infinite-scroll on `/music` can call the Last.fm API directly
+   > from the browser. Last.fm read-only API keys are designed for public
+   > client-side use; the actual sensitive value is the Shared Secret, which we
+   > never use. Storing the key as a GitHub *Secret* keeps it out of repo
+   > history while still allowing it to be embedded in the static bundle.
 
 4. **Push to `main`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
    `npm run build`, uploads `./out/` and publishes via `actions/deploy-pages`.
