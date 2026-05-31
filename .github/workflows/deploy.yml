@@ -36,8 +36,8 @@ jobs:
       - name: Build static site
         env:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_USER: ${{ vars.LASTFM_USER }}
+          NEXT_PUBLIC_LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          NEXT_PUBLIC_LASTFM_USER: ${{ vars.LASTFM_USER }}
         run: npm run build
 
       - uses: actions/configure-pages@v5
