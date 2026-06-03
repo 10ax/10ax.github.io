@@ -27,7 +27,7 @@
 
 - Workflow: `.github/workflows/deploy.yml`
 - Triggers:
-	- Push to `main`
+	- Push to `master` or `main`
 	- Hourly cron (`0 * * * *`)
 	- Manual dispatch
 - Build output uploaded from `./out` and deployed with `actions/deploy-pages`.

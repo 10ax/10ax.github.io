@@ -1,9 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Build & deploy on every push to main
+  # Build & deploy on every push to the default branch name in use.
   push:
-    branches: [main]
+    branches: [master, main]
   # Hourly rebuild so /music refreshes from Last.fm
   schedule:
     - cron: "0 * * * *"
@@ -24,9 +24,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           cache: npm
@@ -40,9 +40,9 @@ jobs:
           NEXT_PUBLIC_LASTFM_USER: ${{ vars.LASTFM_USER }}
         run: npm run build
 
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ./out
 
@@ -54,4 +54,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

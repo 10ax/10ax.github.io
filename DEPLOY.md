@@ -31,7 +31,7 @@ Deploys go to `https://<username>.github.io/`.
    > never use. Storing the key as a GitHub *Secret* keeps it out of repo
    > history while still allowing it to be embedded in the static bundle.
 
-4. **Push to `main`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
+4. **Push to `master` or `main`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
    `npm run build`, uploads `./out/` and publishes via `actions/deploy-pages`.
 
 5. **Hourly refresh** — the workflow also runs on an hourly cron so the
@@ -45,10 +45,12 @@ When you buy `example.com` from Porkbun:
 
 In the Porkbun dashboard → DNS for your domain, add:
 
-| Type    | Host  | Answer                              | TTL  |
-| ------- | ----- | ----------------------------------- | ---- |
-| `ALIAS` | _root_ (`@` or blank) | `<username>.github.io.`   | 600  |
-| `CNAME` | `www` | `<username>.github.io.`             | 600  |
+| Type      | Host                 | Answer                    | TTL |
+| --------- | -------------------- | ------------------------- | --- |
+| `ALIAS`   | *root*               | `<username>.github.io.`   | 600 |
+| `CNAME`   | `www`                | `<username>.github.io.`   | 600 |
+
+In Porkbun, *root* means `@` or a blank host value.
 
 > Porkbun supports `ALIAS`/`ANAME` records at the apex; if for some reason you can't
 > use ALIAS, fall back to the four GitHub Pages `A` records:
@@ -58,7 +60,7 @@ In the Porkbun dashboard → DNS for your domain, add:
 
 Create `public/CNAME` containing exactly your apex domain on a single line:
 
-```
+```txt
 example.com
 ```
 
