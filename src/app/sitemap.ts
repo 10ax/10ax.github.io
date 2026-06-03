@@ -1,10 +1,11 @@
 import type { MetadataRoute } from "next";
 import { getAllPosts } from "@/lib/posts";
+import { resolveSiteUrl } from "@/lib/site-url";
 
 // Required when `output: 'export'` is set in next.config.ts
 export const dynamic = "force-static";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
+const SITE_URL = resolveSiteUrl();
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getAllPosts();

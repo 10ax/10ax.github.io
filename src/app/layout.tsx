@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { getSiteUrlObject } from "@/lib/site-url";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,9 +20,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com",
-  ),
+  metadataBase: getSiteUrlObject(),
   title: "Francesco Tenace — Full-stack Developer",
   description:
     "Senior Full-stack Developer with 5+ years of experience building scalable distributed systems. Java, .NET, Angular, Kubernetes.",
