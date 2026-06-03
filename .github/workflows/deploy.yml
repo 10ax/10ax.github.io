@@ -1,9 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Build & deploy on every push to the default branch name in use.
+  # Build & deploy on every push to the default branch.
   push:
-    branches: [master, main]
+    branches: [master]
   # Hourly rebuild so /music refreshes from Last.fm
   schedule:
     - cron: "0 * * * *"
@@ -31,13 +31,25 @@ jobs:
           node-version: 20
           cache: npm
 
+      - uses: actions/cache@v4
+        with:
+          # See here for caching with `yarn`, `bun` or other package managers https://github.com/actions/cache/blob/main/examples.md or you can leverage caching with actions/setup-node https://github.com/actions/setup-node
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+          
       - run: npm ci
 
       - name: Build static site
         env:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://10ax.github.io' }}
-          NEXT_PUBLIC_LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          NEXT_PUBLIC_LASTFM_USER: ${{ vars.LASTFM_USER }}
+          NEXT_PUBLIC_LASTFM_API_KEY: ${{ secrets.NEXT_PUBLIC_LASTFM_API_KEY }}
+          NEXT_PUBLIC_LASTFM_USER: ${{ secrets.NEXT_PUBLIC_LASTFM_USER }}
         run: npm run build
 
       - uses: actions/configure-pages@v6
