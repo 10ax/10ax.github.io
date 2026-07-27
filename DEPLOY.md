@@ -31,7 +31,7 @@ Deploys go to `https://<username>.github.io/`.
    > never use. Storing the key as a GitHub *Secret* keeps it out of repo
    > history while still allowing it to be embedded in the static bundle.
 
-4. **Push to `master` or `main`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
+4. **Push to `master`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
    `npm run build`, uploads `./out/` and publishes via `actions/deploy-pages`.
 
 5. **Hourly refresh** — the workflow also runs on an hourly cron so the
