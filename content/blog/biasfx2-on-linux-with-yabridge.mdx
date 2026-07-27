@@ -1,0 +1,215 @@
+---
+title: Ditching the Windows reboot — BIAS FX 2 in REAPER on Linux
+date: 2026-07-27
+description: I got tired of rebooting into Windows just to play guitar. Here's the research, the plugin that rendered nothing but a black rectangle, and the fix — plus the commands to do it yourself.
+tags: [linux, audio, wine, arch, reaper]
+---
+
+For longer than I'd like to admit, my routine for a quick guitar session was: shut down
+whatever I was doing on Arch, boot into Windows, wait, open REAPER over there, plug in the
+Behringer, and go. All because of one plugin — **BIAS FX 2**, my amp sim of choice — that
+Positive Grid has never shipped a Linux build of and never will.
+
+Eventually the reboot tax got annoying enough that I decided to actually solve it instead of
+living with it.
+
+## Do I really need Windows for this?
+
+First question: does *anyone* run Windows VSTs on Linux without a second OS? Turns out yes,
+several ways:
+
+- **Native Linux plugins** — the honest answer, but it doesn't exist for BIAS FX 2. Positive
+  Grid doesn't build for Linux and there's no indication they ever will.
+- **CrossOver** — CodeWeavers' commercial, polished Wine fork. Would probably work, but it's
+  paid and closed, and I wanted to understand the machinery, not just pay to hide it.
+- **Run the DAW itself in Wine** — REAPER even ships an official note on this, since REAPER
+  has a native Linux build anyway there was no reason to go this route.
+- **Bridge only the plugin** — keep REAPER native on Linux, run *just* the Windows VST inside
+  a Wine process, and expose it to the DAW as if it were a normal plugin.
+
+That last one is the interesting option, and it's what everyone doing serious Windows-VST
+work on Linux actually uses.
+
+## Finding yabridge
+
+The bridging idea itself isn't new — the old-school approach was tools like `LinVst`, which
+work by dropping a shim `.so` next to the Windows `.dll` and hoping the plugin doesn't notice
+too much. It works, but every plugin needs its shim wired up by hand, and the whole thing
+tends to be fragile across plugin updates.
+
+**yabridge** does the same basic trick — a thin native `.so` on one side, the real Windows
+plugin running inside Wine on the other, talking over a socket — but it's actively maintained,
+supports VST2, VST3, *and* CLAP, and comes with `yabridgectl`, a CLI that manages the whole
+plugin directory for you instead of per-plugin scripts. That tipped it for me. If I was going
+to depend on this for actual recording, I wanted something with a maintainer and a changelog,
+not a shell script I'd half-remember in a year.
+
+Decision made, I set up a dedicated prefix and got the plugin installed.
+
+## The install that almost worked
+
+BIAS FX 2 went into its own prefix — not `~/.wine`, since I didn't want a driver quirk from
+some other Windows program someday taking down my amp sim. Windows 7 compatibility mode
+(BIAS FX 2 is old enough that this is the safe default), the usual `winetricks` grab bag —
+fonts, the VC++ runtime, `d3dcompiler_47`, `gdiplus` — and DXVK for GPU acceleration, since
+this plugin's UI is not a simple row of knobs.
+
+`yabridgectl add`, `yabridgectl sync`, opened REAPER, dropped BIAS FX 2 on a track.
+
+The Positive Grid splash logo appeared. Good sign.
+
+Then the plugin window went **completely black**. No knobs, no amp graphic, no menu, nothing
+to click. Just a black rectangle sitting where a plugin UI should be. Audio was passing
+through fine — I could hear dry guitar — the plugin just refused to draw itself.
+
+## Chasing a black rectangle
+
+My first assumption was a yabridge/Wine version mismatch — a very common failure mode for
+bridged plugins, so I started there.
+
+- Bumped wine-staging up to whatever was current at the time. No change — still black.
+- Tried a couple of yabridge point releases. Same black rectangle.
+- Reinstalled the plugin from scratch in a fresh prefix, in case the first install had gotten
+  into a weird state. Identical symptom, so at least it was consistent and not corrupted
+  state.
+- Turned DXVK off entirely, thinking the GPU translation layer might be the culprit. The UI
+  still didn't paint — so DXVK as a whole wasn't the problem, which ruled out the laziest
+  explanation.
+
+At that point I stopped changing whole components and started reading the plugin's install
+directory instead of guessing. Inside
+`Common Files/PositiveGrid/BIAS FX 2 Plugins (64bit)/Resources/` sat a very telling set of
+files: `libcef.dll`, `CefSubprocess.exe`, a pile of `.pak` resource blobs. **BIAS FX 2's
+interface is not a native-rendered plugin UI — it's an embedded Chromium browser** (CEF), for
+the preset browser and ToneCloud panes. And an old one, from a build years before the version
+of Wine I was running.
+
+That reframed the whole problem. This wasn't "a VST doesn't render on Wine." This was "an
+old embedded Chromium's GPU rendering path doesn't get along with DXVK's take on Direct3D 11
+and DXGI." Two mostly-unrelated compatibility layers, stacked, neither one tested against
+the other.
+
+## The fix, once I knew what I was actually fighting
+
+Two changes, and both were needed together:
+
+**Pin Wine to a version this specific plugin/Wine/DXVK combination is known to behave with.**
+I settled on `wine-staging 9.21`, locked it with `IgnorePkg` in `pacman.conf` so a routine
+system update wouldn't silently pull the rug out from under it again.
+
+**Stop routing the browser's rendering through DXVK, without giving up DXVK everywhere.**
+`winetricks dxvk` points `d3d9`, `d3d10core`, `d3d11`, and `dxgi` all at DXVK. I left `d3d9`
+and `d3d10core` alone — that's what actually benefits from GPU acceleration in this plugin —
+but forced `d3d11` and `dxgi` back to Wine's own builtin implementation, and switched off
+`d2d1` (Direct2D) entirely. The embedded Chromium's rendering backend runs through
+`d3d11`/`dxgi`, and it wants Wine's own translation there, not DXVK's.
+
+Relaunched REAPER, added the plugin again. Splash logo — and then the actual interface:
+amp models, cabinet graphics, the effects chain, all responsive, all at full frame rate. No
+crash, no black square. Four days of intermittent fighting, in the end, over two registry
+keys and a package pin.
+
+## The guide: doing this yourself
+
+Everything below is Arch-flavored (`pacman`), but the Wine/yabridge/DXVK part carries over to
+any distro if you swap the package manager calls.
+
+### 1. Install the pieces
+
+```bash
+sudo pacman -S --needed \
+  reaper yabridge yabridgectl \
+  wine-staging winetricks \
+  cabextract unzip curl \
+  pipewire pipewire-alsa pipewire-jack pipewire-pulse wireplumber
+```
+
+`[multilib]` needs to be enabled in `/etc/pacman.conf` first — that's where the `lib32-*`
+Wine dependencies live.
+
+### 2. Pin Wine to a version you trust
+
+Once you've found a Wine version that plays nicely with your plugin (9.21-Staging is the one
+that worked for me with BIAS FX 2), stop it from moving:
+
+```bash
+# install a specific version from the Arch archive if you need to roll back
+curl -fLO https://archive.archlinux.org/packages/w/wine-staging/wine-staging-9.21-1-x86_64.pkg.tar.zst
+curl -fLO https://archive.archlinux.org/packages/w/wine-staging/wine-staging-9.21-1-x86_64.pkg.tar.zst.sig
+sudo pacman -U wine-staging-9.21-1-x86_64.pkg.tar.zst
+```
+
+Then add it to `IgnorePkg` in `/etc/pacman.conf` under `[options]` so `pacman -Syu` leaves it
+alone:
+
+```ini
+IgnorePkg = wine-staging
+```
+
+### 3. Build a dedicated prefix
+
+```bash
+export WINEPREFIX="$HOME/.wine-biasfx2"
+export WINEARCH=win64
+
+wineboot --init
+wineserver -w
+
+winetricks -q win7
+winetricks -q dxvk corefonts vcrun2022 d3dcompiler_47 gdiplus
+wineserver -w
+```
+
+### 4. Install the plugin
+
+```bash
+wine /path/to/BIAS-FX-2-installer.exe
+```
+
+Keep the 64-bit VST3 component selected in the installer. It'll land under
+`$WINEPREFIX/drive_c/Program Files/Common Files/VST3`.
+
+### 5. If the UI comes up black: the CEF/DXVK override
+
+Only needed if you hit the same symptom — a plugin with an embedded-browser UI (CEF-based
+ones are the common case) rendering nothing after DXVK is installed:
+
+```bash
+wine reg add 'HKCU\Software\Wine\DllOverrides' /v d3d11 /d builtin /f
+wine reg add 'HKCU\Software\Wine\DllOverrides' /v dxgi  /d builtin /f
+wine reg add 'HKCU\Software\Wine\DllOverrides' /v d2d1  /d disabled /f
+wineserver -w
+```
+
+This leaves `d3d9`/`d3d10core` on DXVK and hands only `d3d11`/`dxgi` back to Wine, which is
+the split that fixed it here.
+
+### 6. Bridge it with yabridge
+
+```bash
+yabridgectl set --vst2-location centralized
+yabridgectl add "$WINEPREFIX/drive_c/Program Files/Common Files/VST3"
+yabridgectl sync --prune
+```
+
+`yabridgectl status` should now list the plugin as `synced`. Because the plugin lives inside
+the prefix, yabridge figures out which `WINEPREFIX` to launch from the plugin's own path — no
+wrapper script, no environment variable to remember.
+
+Optionally, drop a per-plugin config next to the bridged copy — for BIAS FX 2 I use:
+
+```toml
+# ~/.vst3/yabridge/yabridge.toml
+["BIAS FX 2_x64.vst3"]
+hide_daw = true
+editor_disable_host_scaling = true
+```
+
+### 7. Point REAPER at your interface
+
+In REAPER: **Preferences → Audio → Device**, set it to your ALSA device directly (skip the
+JACK/PulseAudio detour if you don't need it) — for me that's `hw:U192k` at 44100 Hz, 512-sample
+blocks. Then **Preferences → Plug-ins → VST**, make sure `~/.vst3` is on the scan path, and
+add the plugin from the FX browser like any other VST3.
+
+No more rebooting. Just guitar.
