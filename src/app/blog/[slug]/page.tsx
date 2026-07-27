@@ -78,13 +78,19 @@ const mdxComponents = {
         // inline word/char highlight (```ts /word/)
         "[&_mark[data-highlighted-chars]]:bg-emerald-500/20 [&_mark[data-highlighted-chars]]:text-emerald-200",
         "[&_mark[data-highlighted-chars]]:rounded [&_mark[data-highlighted-chars]]:px-1",
-        // line numbers (only when showLineNumbers is set on the code fence)
-        "[&[data-line-numbers]_code]:[counter-reset:line]",
-        "[&[data-line-numbers]_code>span[data-line]]:before:[content:counter(line)]",
-        "[&[data-line-numbers]_code>span[data-line]]:before:[counter-increment:line]",
-        "[&[data-line-numbers]_code>span[data-line]]:before:mr-4 [&[data-line-numbers]_code>span[data-line]]:before:inline-block",
-        "[&[data-line-numbers]_code>span[data-line]]:before:w-6 [&[data-line-numbers]_code>span[data-line]]:before:text-right",
-        "[&[data-line-numbers]_code>span[data-line]]:before:text-slate-600 [&[data-line-numbers]_code>span[data-line]]:before:tabular-nums",
+        // line numbers (only when showLineNumbers is set on the code fence).
+        // rehype-pretty-code puts `data-line-numbers` on the <code>, not the <pre>,
+        // so these must be scoped to `code[data-line-numbers]` rather than `&[...]`.
+        // Use `content-[counter(line)]` (which sets --tw-content) and NOT
+        // `[content:counter(line)]`: every `before:*` utility re-emits
+        // `content: var(--tw-content)`, so a raw content declaration gets clobbered
+        // by whichever before: rule Tailwind happens to emit last.
+        "[&_code[data-line-numbers]]:[counter-reset:line]",
+        "[&_code[data-line-numbers]>span[data-line]]:before:content-[counter(line)]",
+        "[&_code[data-line-numbers]>span[data-line]]:before:[counter-increment:line]",
+        "[&_code[data-line-numbers]>span[data-line]]:before:mr-4 [&_code[data-line-numbers]>span[data-line]]:before:inline-block",
+        "[&_code[data-line-numbers]>span[data-line]]:before:w-6 [&_code[data-line-numbers]>span[data-line]]:before:text-right",
+        "[&_code[data-line-numbers]>span[data-line]]:before:text-slate-600 [&_code[data-line-numbers]>span[data-line]]:before:tabular-nums",
       ].join(" ")}
       {...props}
     />
