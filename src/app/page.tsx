@@ -307,7 +307,7 @@ export default function Home() {
                 Download CV
               </a>
               <a
-                href="#"
+                href="https://github.com/10ax/10ax.github.io"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:border-slate-500 hover:bg-slate-800"
               >
                 <GitBranch className="h-4 w-4" />
