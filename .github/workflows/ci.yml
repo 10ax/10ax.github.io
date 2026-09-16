@@ -1,0 +1,49 @@
+name: CI
+
+# Sibling of deploy.yml, which owns publishing. This workflow only checks; it never
+# builds an artifact for Pages, never touches the `pages` concurrency group, and holds
+# no secrets. The hourly cron that refreshes /music lives in deploy.yml and is not
+# duplicated here.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Node 20 to match deploy.yml. The static export is only ever produced on
+      # Node 20, so the checks have to agree with it.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type-check
+        run: npx tsc --noEmit
+
+      - name: Test
+        run: npx vitest run
+
+      # No NEXT_PUBLIC_* values are provided on purpose. The site must build without
+      # a Last.fm key (the /music page falls back to a static artist list) and without
+      # NEXT_PUBLIC_SITE_URL (src/lib/site-url.ts falls back to the Pages origin).
+      # If this step ever needs a secret, the build has regressed.
+      - name: Build static export
+        run: npm run build
