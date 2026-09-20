@@ -17,20 +17,20 @@ Requires **Node 20** — that is what both GitHub Actions workflows use, and a n
 will not reproduce their results.
 
 ```bash
-npm ci --ignore-scripts   # install exactly what package-lock.json pins
-npm run dev               # http://localhost:3000
+pnpm install --frozen-lockfile --ignore-scripts   # install exactly what pnpm-lock.yaml pins
+pnpm run dev               # http://localhost:3000
 ```
 
 The full check suite, in the order CI runs it:
 
 ```bash
-npm run lint      # eslint, via eslint-config-next
-npx tsc --noEmit  # type-check
-npm test          # vitest run
-npm run build     # static export into ./out/
+pnpm run lint      # eslint, via eslint-config-next
+pnpm exec tsc --noEmit  # type-check
+pnpm test          # vitest run
+pnpm run build     # static export into ./out/
 ```
 
-`npm run build` needs no environment variables. `NEXT_PUBLIC_SITE_URL` falls back to
+`pnpm run build` needs no environment variables. `NEXT_PUBLIC_SITE_URL` falls back to
 `https://10ax.github.io`, and `/music` falls back to a hard-coded artist list when no
 Last.fm credentials are present.
 
@@ -64,12 +64,12 @@ covers the migration if that is ever wanted.
 
 ## Tests
 
-`npm test` runs a characterisation suite — it pins down what the code does **today**, so
+`pnpm test` runs a characterisation suite — it pins down what the code does **today**, so
 that a change which alters it is visible rather than silent. It covers the three places
 where a mistake becomes a failed deploy or a wrong link:
 
 - `tests/posts.test.ts` — frontmatter parsing, date normalisation, slug derivation,
-  sorting, and the malformed-YAML failure that breaks `npm run build`.
+  sorting, and the malformed-YAML failure that breaks `pnpm run build`.
 - `tests/site-url.test.ts` — origin resolution and its fallbacks.
 - `tests/metadata-routes.test.ts` — the exact contents of `sitemap.xml` and `robots.txt`.
 - `tests/content-blog.test.ts` — the real posts in `content/blog/`, so a bad post fails a

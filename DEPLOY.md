@@ -32,7 +32,7 @@ Deploys go to `https://<username>.github.io/`.
    > history while still allowing it to be embedded in the static bundle.
 
 4. **Push to `master`** — the [`deploy.yml`](.github/workflows/deploy.yml) workflow runs
-   `npm run build`, uploads `./out/` and publishes via `actions/deploy-pages`.
+   `pnpm run build`, uploads `./out/` and publishes via `actions/deploy-pages`.
 
 5. **Hourly refresh** — the workflow also runs on an hourly cron so the
    `/music` page picks up new Last.fm scrobbles without a manual push.
@@ -105,8 +105,8 @@ Also update `NEXT_PUBLIC_SITE_URL` to `https://<username>.github.io/<repo>`.
 ## Local sanity check
 
 ```bash
-npm run build      # writes ./out/
-npx serve out      # preview the exported site at http://localhost:3000
+pnpm run build      # writes ./out/
+pnpm exec serve out      # preview the exported site at http://localhost:3000
 ```
 
 ## Known quirk: OG image Content-Type

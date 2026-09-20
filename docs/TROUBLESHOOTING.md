@@ -13,11 +13,11 @@ Every command here exists in this repo. Run them from the repository root.
 ## First moves
 
 ```bash
-npm ci --ignore-scripts   # exact dependency tree from package-lock.json
-npm run lint              # eslint
-npx tsc --noEmit          # type-check
-npx vitest run            # the test suite (also: npm test)
-npm run build             # the static export, into ./out/
+pnpm install --frozen-lockfile --ignore-scripts   # exact dependency tree from pnpm-lock.yaml
+pnpm run lint              # eslint
+pnpm exec tsc --noEmit          # type-check
+pnpm exec vitest run            # the test suite (also: pnpm test)
+pnpm run build             # the static export, into ./out/
 ```
 
 If all five are green locally and CI is red, the difference is almost always the Node
@@ -39,8 +39,8 @@ grep -n 'node-version' .github/workflows/*.yml   # what the runners use
 dependencies and native bindings differently, so a green local run does not prove the
 deploy will be green.
 
-**Fix:** reproduce on Node 20 before chasing anything else — `nvm use 20 && npm ci
---ignore-scripts && npm run build`. Keep both workflows on the same major; if you raise
+**Fix:** reproduce on Node 20 before chasing anything else — `nvm use 20 && pnpm install --frozen-lockfile
+--ignore-scripts && pnpm run build`. Keep both workflows on the same major; if you raise
 one, raise the other in the same commit. Note that `vitest` is pinned to the 3.x line
 precisely because it still supports Node 20; vitest 4 drops Node 18 and vitest 5 requires
 Node 22.12+, so neither can run on the deploy runner as configured.
@@ -117,12 +117,12 @@ move it into the `pages` group and never add `actions/deploy-pages` to it.
 
 ---
 
-### Symptom — `npm run build` fails with a YAMLException naming a blog post
+### Symptom — `pnpm run build` fails with a YAMLException naming a blog post
 
 **Check:**
 
 ```bash
-npx vitest run tests/content-blog.test.ts
+pnpm exec vitest run tests/content-blog.test.ts
 ```
 
 **Cause:** `src/lib/posts.ts` parses the frontmatter of every file in `content/blog/` at
@@ -156,7 +156,7 @@ Watch for the silent failures too — they do not throw, so only
 **Check:**
 
 ```bash
-npx vitest run tests/posts.test.ts -t "throws only on the first parse"
+pnpm exec vitest run tests/posts.test.ts -t "throws only on the first parse"
 ```
 
 **Cause:** `gray-matter` memoises by content string, and a parse that throws still leaves
@@ -175,7 +175,7 @@ uses a distinct malformed body per test for exactly this reason.
 **Check:**
 
 ```bash
-npx vitest run tests/posts.test.ts -t "shifts a zone-offset datetime"
+pnpm exec vitest run tests/posts.test.ts -t "shifts a zone-offset datetime"
 grep -n '^date:' content/blog/*.mdx
 ```
 
@@ -234,7 +234,7 @@ hourly cron runs do not re-download the fonts.
 **Check:**
 
 ```bash
-npm run build && find out -name 'opengraph-image*'
+pnpm run build && find out -name 'opengraph-image*'
 ```
 
 **Cause:** the OpenGraph routes are `.tsx` handlers, so the export writes
@@ -250,21 +250,17 @@ necessary.
 
 ### Symptom — `npm install` crashes with "Cannot read properties of null (reading 'edgesOut')"
 
-**Check:**
-
-```bash
-npm --version
-node --version
-```
+Historical. This repo moved to pnpm, which does not use npm's arborist resolver, so the
+crash cannot occur here any more. The entry stays because it is the reason `vitest` is
+pinned at `^3.2.7`.
 
 **Cause:** an arborist bug in npm 10.9.2 (the version bundled with Node 22.16) when
 resolving a package that declares optional peer dependencies on packages that are not
 installed. It was hit while adding `vitest` — versions 4 and 5 both trip it; 3.x does not.
 
-**Fix:** `npm ci --ignore-scripts` is unaffected, so day-to-day work is fine. When adding a
-dependency does hit it, delete `node_modules` and retry; if it persists, the dependency's
-peer graph is the cause — pin to a version that does not declare those optional peers, or
-upgrade npm.
+**Consequence today:** the reason for the `vitest` 3.x pin is gone. Bumping it is a
+deliberate change, not a side effect of the package-manager switch, so the pin stands
+until someone upgrades it and runs the suite.
 
 ---
 
@@ -274,7 +270,7 @@ upgrade npm.
 
 ```bash
 grep -rn 'force-static' src/app/
-npm run build && find out -maxdepth 2 -name 'index.html'
+pnpm run build && find out -maxdepth 2 -name 'index.html'
 ```
 
 **Cause:** `next.config.ts` sets `output: "export"`. Every metadata route
@@ -344,10 +340,10 @@ while writing this guide; they are recorded so the next person does not rediscov
   the fallback behaviour it guards *is* covered, indirectly, by the build succeeding with
   no credentials in CI.
 
-- **10 npm advisories are open** — `npm audit` reports 1 critical, 6 high and 3 moderate.
+- **10 pnpm advisories are open** — `pnpm audit` reports 1 critical, 6 high and 3 moderate.
   Eight of them pre-date this work; the two remaining moderates arrived with the `vitest`
   dev-dependency tree (`vite`/`esbuild`) and affect the test runner only, not the exported
   site. None were touched: resolving them means moving dependency majors, which is a
-  behaviour change and the owner's decision. Run `npm audit` for the current list.
+  behaviour change and the owner's decision. Run `pnpm audit` for the current list.
 
 <!-- autodoc:end -->

@@ -18,10 +18,10 @@
 
 ## Commands
 
-- Install dependencies: `npm ci`
-- Development server: `npm run dev`
-- Production build: `npm run build`
-- Lint: `npm run lint`
+- Install dependencies: `pnpm install --frozen-lockfile`
+- Development server: `pnpm run dev`
+- Production build: `pnpm run build`
+- Lint: `pnpm run lint`
 
 ## Deployment workflow
 

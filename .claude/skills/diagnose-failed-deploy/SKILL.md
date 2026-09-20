@@ -18,8 +18,8 @@ Everything else is guesswork until this matches what the runner does:
 
 ```bash
 node --version      # must be 20 — the workflow pins node-version: 20
-npm ci --ignore-scripts
-npm run build
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run build
 ```
 
 If your machine is on 22 or newer, switch (`nvm use 20`) before concluding anything. A
@@ -31,7 +31,7 @@ The most frequent break is a blog post, because `src/lib/posts.ts` parses every 
 `content/blog/` at build time and one bad file fails everything:
 
 ```bash
-npx vitest run tests/content-blog.test.ts
+pnpm exec vitest run tests/content-blog.test.ts
 ```
 
 This names the offending slug. A `YAMLException` in the deploy log is the same failure seen
@@ -42,10 +42,10 @@ from the other end. `docs/TROUBLESHOOTING.md` has the valid frontmatter shape.
 Run the same four checks CI runs, in order, and stop at the first red one:
 
 ```bash
-npm run lint
-npx tsc --noEmit
-npx vitest run
-npm run build
+pnpm run lint
+pnpm exec tsc --noEmit
+pnpm exec vitest run
+pnpm run build
 ```
 
 `ci.yml` runs exactly these on push and pull request, so a break here should have been
@@ -100,7 +100,7 @@ in `DEPLOY.md` is stale and asks for a *variable* `LASTFM_USER` and a *secret*
 value the URL parser rejects.
 
 ```bash
-npx vitest run tests/site-url.test.ts tests/metadata-routes.test.ts
+pnpm exec vitest run tests/site-url.test.ts tests/metadata-routes.test.ts
 ```
 
 **The site is simply old.** Check the Actions tab for a skipped or queued cron run. A
@@ -110,7 +110,7 @@ refresh without an empty commit.
 ## 5. Still stuck
 
 `docs/TROUBLESHOOTING.md` covers the rest symptom-first — font downloads at build time,
-OpenGraph `Content-Type`, the `force-static` requirement on metadata routes, the npm
+OpenGraph `Content-Type`, the `force-static` requirement on metadata routes, the historical npm
 arborist crash — and its final section lists what is already known to be broken, so you do
 not spend an evening rediscovering it.
 
