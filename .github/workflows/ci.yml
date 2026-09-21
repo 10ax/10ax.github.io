@@ -31,7 +31,7 @@ jobs:
       # The version comes from .node-version, which deploy.yml reads too — one
       # file, so the checks and the published build can never disagree. It says
       # 22 because pnpm 11 refuses to start on anything below Node 22.13.
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
           cache: pnpm
