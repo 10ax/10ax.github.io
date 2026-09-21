@@ -17,13 +17,14 @@ Work through them in that order.
 Everything else is guesswork until this matches what the runner does:
 
 ```bash
-node --version      # must be 20 — the workflow pins node-version: 20
+node --version      # must match .node-version (22); both workflows read it
 pnpm install --frozen-lockfile --ignore-scripts
 pnpm run build
 ```
 
-If your machine is on 22 or newer, switch (`nvm use 20`) before concluding anything. A
-green build on a different Node major does not prove the deploy will be green.
+If your machine is on a different major, switch to the one `.node-version` names
+(`nvm use $(cat .node-version)`) before concluding anything. A green build on a different
+Node major does not prove the deploy will be green.
 
 ## 1. Is it the content?
 

@@ -22,7 +22,7 @@ mistake surfaces as a failed `pnpm run build` rather than a runtime error.
 | MDX | `gray-matter` frontmatter + `next-mdx-remote/rsc` |
 | Highlighting | `rehype-pretty-code` + `shiki` |
 | Icons | `lucide-react`, `simple-icons` |
-| Tests | Vitest `^3.2.7` — stays on 3.x because 4 and 5 drop Node 20 |
+| Tests | Vitest `^3.2.7` — the pin predates Node 22 and pnpm; nothing blocks a bump now, but nobody has done it |
 
 ## Commands
 

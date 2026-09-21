@@ -13,8 +13,9 @@ why the whole thing is a static export with no server to keep alive.
 
 ## Quickstart
 
-Requires **Node 20** — that is what both GitHub Actions workflows use, and a newer major
-will not reproduce their results.
+Requires **Node 22** — the version in `.node-version`, which both GitHub Actions
+workflows read. It is a floor, not a preference: pnpm 11 refuses to start on anything
+below Node 22.13.
 
 ```bash
 pnpm install --frozen-lockfile --ignore-scripts   # install exactly what pnpm-lock.yaml pins

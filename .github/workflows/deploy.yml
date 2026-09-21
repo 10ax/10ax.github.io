@@ -31,9 +31,10 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
+      # Same .node-version as ci.yml: 22, the floor pnpm 11 requires.
       - uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version-file: .node-version
           cache: pnpm
 
       # Only Next's own build cache: the dependency store is cached by setup-node

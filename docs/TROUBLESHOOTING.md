@@ -30,20 +30,21 @@ major version or a missing repository variable — see the first two entries.
 **Check:**
 
 ```bash
-node --version                                   # what you are running
-grep -n 'node-version' .github/workflows/*.yml   # what the runners use
+node --version      # what you are running
+cat .node-version   # what both workflows will use
 ```
 
-**Cause:** both `.github/workflows/deploy.yml` and `.github/workflows/ci.yml` pin
-`node-version: 20`. A developer machine on Node 22 (or newer) resolves optional
-dependencies and native bindings differently, so a green local run does not prove the
-deploy will be green.
+**Cause:** the two used to disagree — both workflows pinned `node-version: 20` while
+development happened on 22, so a green local run proved nothing about the deploy. Both
+now read `.node-version`, so the remaining way to hit this is running a different
+version locally than that file names.
 
-**Fix:** reproduce on Node 20 before chasing anything else — `nvm use 20 && pnpm install --frozen-lockfile
---ignore-scripts && pnpm run build`. Keep both workflows on the same major; if you raise
-one, raise the other in the same commit. Note that `vitest` is pinned to the 3.x line
-precisely because it still supports Node 20; vitest 4 drops Node 18 and vitest 5 requires
-Node 22.12+, so neither can run on the deploy runner as configured.
+**Fix:** match `.node-version`. The floor is not a style choice: pnpm 11 exits on
+startup below Node 22.13 with `No such built-in module: node:sqlite`, which is how this
+was found — the first pnpm build on the old Node 20 pin died before installing anything.
+
+If you raise `.node-version`, both workflows follow it in the same commit, which is the
+point of keeping it in one file.
 
 ---
 
