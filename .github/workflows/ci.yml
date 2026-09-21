@@ -22,28 +22,37 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      # Before setup-node on purpose: `cache: pnpm` needs pnpm already on PATH to
+      # locate the store. No `version` input — pnpm/action-setup reads it from
+      # package.json "packageManager", so the version lives in one place.
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       # Node 20 to match deploy.yml. The static export is only ever produced on
       # Node 20, so the checks have to agree with it.
       - uses: actions/setup-node@v6
         with:
           node-version: 20
-          cache: npm
+          cache: pnpm
 
+      # --ignore-scripts here, but the build steps below still work: the packages
+      # that genuinely need a build step (esbuild, sharp, unrs-resolver) are
+      # allowed in pnpm-workspace.yaml and ship prebuilt binaries for CI's platform.
       - name: Install dependencies
-        run: npm ci --ignore-scripts
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Type-check
-        run: npx tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Test
-        run: npx vitest run
+        run: pnpm exec vitest run
 
       # No NEXT_PUBLIC_* values are provided on purpose. The site must build without
       # a Last.fm key (the /music page falls back to a static artist list) and without
       # NEXT_PUBLIC_SITE_URL (src/lib/site-url.ts falls back to the Pages origin).
       # If this step ever needs a secret, the build has regressed.
       - name: Build static export
-        run: npm run build
+        run: pnpm run build

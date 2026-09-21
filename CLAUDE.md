@@ -7,7 +7,7 @@
 
 Personal portfolio and blog. Next.js App Router, **statically exported** to GitHub Pages.
 There is no server and no runtime: everything is decided at build time, so almost every
-mistake surfaces as a failed `npm run build` rather than a runtime error.
+mistake surfaces as a failed `pnpm run build` rather than a runtime error.
 
 ## Stack and pinned versions
 
@@ -17,7 +17,7 @@ mistake surfaces as a failed `npm run build` rather than a runtime error.
 | React | `19.2.4` |
 | TypeScript | `^5`, `strict: true`, path alias `@/*` → `./src/*` |
 | Node | **20** — both workflows pin it; local machines may be newer |
-| Package manager | npm, with a committed `package-lock.json` |
+| Package manager | pnpm, with a committed `pnpm-lock.yaml` |
 | Styling | Tailwind CSS v4 via `@tailwindcss/postcss` |
 | MDX | `gray-matter` frontmatter + `next-mdx-remote/rsc` |
 | Highlighting | `rehype-pretty-code` + `shiki` |
@@ -27,12 +27,12 @@ mistake surfaces as a failed `npm run build` rather than a runtime error.
 ## Commands
 
 ```bash
-npm ci --ignore-scripts   # install; never run lifecycle scripts in a worktree
-npm run dev               # dev server on :3000
-npm run lint              # eslint
-npx tsc --noEmit          # type-check
-npm test                  # vitest run  (same as: npx vitest run)
-npm run build             # static export into ./out/
+pnpm install --frozen-lockfile --ignore-scripts   # install; never run lifecycle scripts in a worktree
+pnpm run dev               # dev server on :3000
+pnpm run lint              # eslint
+pnpm exec tsc --noEmit          # type-check
+pnpm test                  # vitest run  (same as: pnpm exec vitest run)
+pnpm run build             # static export into ./out/
 ```
 
 All five of the non-dev commands must pass before anything is committed. They are exactly

@@ -82,8 +82,8 @@ Then set the `NEXT_PUBLIC_SITE_URL` variable to `https://10ax.github.io/my-portf
 Locally, with the new value, before pushing:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://example.com npx vitest run tests/metadata-routes.test.ts
-NEXT_PUBLIC_SITE_URL=https://example.com npm run build
+NEXT_PUBLIC_SITE_URL=https://example.com pnpm exec vitest run tests/metadata-routes.test.ts
+NEXT_PUBLIC_SITE_URL=https://example.com pnpm run build
 
 grep -o 'https://[^"<]*' out/sitemap.xml | sort -u | head
 cat out/robots.txt
@@ -100,7 +100,7 @@ not a caching artefact.
 Preview the export the way Pages will serve it:
 
 ```bash
-npx serve out       # http://localhost:3000
+pnpm exec serve out       # http://localhost:3000
 ```
 
 After the deploy, check the live `https://<new-origin>/robots.txt` and `/sitemap.xml`

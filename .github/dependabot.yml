@@ -1,7 +1,8 @@
 version: 2
 
-# GitHub Actions only. Bumping the npm ecosystem here would put Next.js, React and
-# Tailwind major versions into the update queue unattended; that is the owner's call.
+# GitHub Actions only. Dependabot's "npm" ecosystem also covers pnpm lockfiles, but
+# enabling it here would put Next.js, React and Tailwind major versions into the
+# update queue unattended; that is the owner's call.
 updates:
   - package-ecosystem: github-actions
     directory: /

@@ -71,8 +71,8 @@ If line numbers render wrong, do not adjust the fence — the cause is in the `p
 ## 3. Verify before you push
 
 ```bash
-npx vitest run tests/content-blog.test.ts   # fails naming the bad slug
-npm run build                                # the real thing
+pnpm exec vitest run tests/content-blog.test.ts   # fails naming the bad slug
+pnpm run build                                # the real thing
 ```
 
 Run the content test first: it reads the committed posts and reports the offending slug,
@@ -81,13 +81,13 @@ whereas a build failure gives you a YAMLException and a stack.
 Then the full gate:
 
 ```bash
-npm run lint && npx tsc --noEmit && npm test && npm run build
+pnpm run lint && pnpm exec tsc --noEmit && pnpm test && pnpm run build
 ```
 
 ## 4. Check it locally
 
 ```bash
-npm run dev     # http://localhost:3000/blog
+pnpm run dev     # http://localhost:3000/blog
 ```
 
 Confirm the post appears on `/blog` with the right date and tags, and that

@@ -1,0 +1,8 @@
+# pnpm 11 no longer reads the "pnpm" field in package.json — settings live here.
+# These three ship native binaries and are inert without their build step:
+# esbuild (vitest's bundler), sharp (next/image), unrs-resolver (eslint-config-next).
+# Everything else stays blocked, which is the point of the allowlist.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
