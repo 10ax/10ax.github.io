@@ -29,7 +29,7 @@ jobs:
       # Before setup-node: `cache: pnpm` needs pnpm on PATH to find the store.
       # No `version` input — it is read from package.json "packageManager".
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       # Same .node-version as ci.yml: 22, the floor pnpm 11 requires.
       - uses: actions/setup-node@v6
