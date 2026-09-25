@@ -24,7 +24,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # Before setup-node: `cache: pnpm` needs pnpm on PATH to find the store.
       # No `version` input — it is read from package.json "packageManager".
