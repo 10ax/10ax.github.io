@@ -1,0 +1,736 @@
+---
+title: My laptop as a third monitor — from KDE Connect to Sunshine
+date: 2026-09-25
+description: KDE Connect can turn a second Linux machine into an extra screen. I spent a day making it usable, measured why it never gets smooth, and ended up with Sunshine, Moonlight and a monitor that exists only in software.
+tags: [linux, kde, wayland, sunshine, arch]
+---
+
+My desk has a mini PC (I call it **atlas**) driving two 1080p screens, and next to it, most
+of the day, an HP EliteBook x360 (**elitebook**) with its lid open doing nothing. It has a
+perfectly good 1080p touchscreen. I wanted it to be a third monitor for atlas: a real
+extended desktop, not a mirror or a remote desktop window.
+
+KDE Connect 26.08 has a button for exactly this: **Use device as an external monitor**. This
+post is the diary of one working day with it: what that button actually does, every problem
+it had, the fixes (a few of them wrong), the measurements that convinced me RDP is the wrong
+tool for a smooth extra screen, and the setup I ended up with. It uses Sunshine and Moonlight
+with a fake monitor that the GPU believes is plugged in. No HDMI dummy dongle.
+
+The mistakes stay in, including the KWin crash I caused. The guide at the end has the
+tested commands if you just want the result.
+
+## The machines
+
+- **atlas**, the desktop being extended: AMD Ryzen 9 7940HS with a Radeon 780M iGPU, a
+  Philips 243V7 (`HDMI-A-1`, 100%) and an ARZOPA portable screen (`HDMI-A-2`, 125%), both
+  1920x1080, on 2.5 Gbit/s Ethernet.
+- **elitebook**, the laptop used as a screen: i5-1145G7 with Iris Xe, a 1920x1080
+  touchscreen at 125% scale, on Wi-Fi 6 (5 GHz, 160 MHz channel, about −45 dBm).
+- Both run Arch with kernel 7.2.6 and Plasma 6.7.5 on Wayland. Versions that matter:
+  kdeconnect 26.08.1, krdp 6.7.5, krdc 26.08.1, freerdp 3.31.1, sunshine 2026.914,
+  moonlight-qt 6.1.0.
+
+## Part 1: KDE Connect's "external monitor"
+
+### What the button does
+
+KDE Connect can pair two computers, not only a computer and a phone. I worked out the
+virtual monitor plugin's behaviour from logs and process lists:
+
+1. On the host, it starts **krdp**, KDE's RDP server, in virtual-monitor mode:
+   `krdpserver --virtual-monitor <W>x<H>@<scale> --username user --password <random> --port 590x --plasma`
+2. KWin creates a new output called `Virtual-<W>x<H>@<scale>`. It behaves like a hot-plugged
+   monitor: it's in Display Settings, windows can move to it, you can arrange it.
+3. krdp encodes that output as H.264, in hardware through VAAPI on the 780M, and serves it
+   over RDP.
+4. The laptop opens **KRDC**, KDE's RDP client built on FreeRDP, pointed at
+   `rdp://user:<password>@<atlas>:590x`. Keyboard and mouse input from the laptop goes back
+   to atlas.
+5. The output disappears when the session ends.
+
+So it really is an extended desktop. The first session worked on the first click, which
+is impressive. Then I started looking at it closely.
+
+### The stream was 2.56× too big
+
+The first odd things: atlas's cursor seemed pinned in the top-left corner, KRDC asked a
+Host Configuration dialog's worth of questions, and `kscreen-doctor -o` listed the new output
+as **`Virtual-3072x1728@2`**.
+
+*Wrong guess #1:* the virtual output overlapped the Philips at 0,0 and that trapped the
+cursor. It didn't. It sat at 1920,0, next to it.
+
+The size was the real finding. elitebook runs 1920x1080 at 125%, which is 1536x864 logical
+pixels. KDE Connect rounded the scale **up to 2** and asked for 1536x864 × 2 = 3072x1728.
+atlas was encoding 2.56 times the pixels the laptop's panel has, and KRDC was shrinking
+every frame back down in software.
+
+I measured a live session from atlas with `ss -tin` and `/proc`: krdpserver at about 1.5% of
+one core, about 1.6 Mbit/s on average and flagged `app_limited`, RTT between 1.4 and 10 ms
+with ±11 ms of swing, 157 retransmits (123 of them spurious), and the TCP congestion window
+down to 8 packets.
+
+*Wrong guess #2:* I blamed the Wi-Fi. Once I could SSH into the laptop,
+`iw dev wlan0 link` reported a 5 GHz, 160 MHz link at about 2 Gbit/s and 3 ms RTT. The radio
+was excellent. The jitter was most likely the laptop choking on the oversized stream.
+
+### Fix: a `krdpserver` that lies about the size
+
+KDE Connect has no setting for the size it requests. But `kdeconnectd`'s `PATH` has
+`/usr/local/bin` ahead of `/usr/bin`, so a script called `krdpserver` there gets run
+instead of the real one. (Check yours with
+`tr '\0' '\n' < /proc/$(pgrep -x kdeconnectd)/environ | grep ^PATH`.)
+
+```sh
+#!/bin/sh
+# elitebook asks for 3072x1728@2 (its 1.25 scale rounded up to 2):
+# stream its native 1920x1080 instead. Everything else passes through.
+for a; do shift; [ "$a" = 3072x1728@2 ] && a=1920x1080@1.25; set -- "$@" "$a"; done
+exec /usr/bin/krdpserver "$@"
+```
+
+The next session ran as `krdpserver --virtual-monitor 1920x1080@1.25`, so the wrapper is
+picked up and krdp accepts a fractional scale.
+
+KWin, however, **ignores the requested scale**. It matches virtual outputs by a uuid stored
+in `~/.config/kwinoutputconfig.json`, and KDE Connect's output has the same uuid every
+session whatever its size. I had set it to 200% earlier as a first fix, so KWin kept
+applying 200%. Setting it once fixed it for good:
+
+```bash
+kscreen-doctor output.1.scale.1.25   # "1" is the Virtual output's index in kscreen-doctor -o
+```
+
+### The invisible cursor
+
+With atlas's own mouse on the virtual screen, the laptop showed **no cursor** at all, even
+though hover effects fired. krdp sends the cursor as RDP pointer *metadata* instead of
+drawing it into the video, and KRDC only shows the laptop's local pointer, which atlas's
+mouse can't move.
+
+The workaround is KWin's **Track Mouse** effect. It draws an animated ring into the
+picture itself, so the ring ends up in the stream:
+
+```bash
+kwriteconfig6 --file kwinrc --group Plugins --key trackmouseEnabled true
+qdbus6 org.kde.KWin /KWin org.kde.KWin.reconfigure
+qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect trackmouse
+```
+
+Then toggle it with the "Track mouse" shortcut. It works, but it costs quality: an animated
+region never lets the encoder go idle, so the area around the ring always looks rough. It
+also only moves as fast as the video updates.
+
+### The time I crashed KWin
+
+I wanted an FPS number, so with the stream running I loaded KWin's Show FPS effect:
+
+```bash
+qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect showfps   # don't, during a screencast
+```
+
+`kwin_wayland` segfaulted on the spot. The journal's stack trace went
+`ScreenCastStream::record → WorkspaceScene::paint → EglContext::currentFramebuffer`: it
+tried to draw a frame for the screencast with no framebuffer bound. That's a KWin bug,
+but I'm the one who triggered it.
+
+The aftermath was an interesting lesson in how Plasma on Wayland survives a compositor
+restart:
+
+- **KDE and Qt apps** reconnected to the restarted KWin and carried on, because Plasma sets
+  `QT_WAYLAND_RECONNECT=1`.
+- **Chromium and Electron apps** died. They can't reconnect.
+- **Plasma helpers** (panel, KRunner, portals, Trayscale, JetBrains Toolbox) exited. systemd
+  restarted most of them; KRunner and Trayscale needed `systemctl --user reset-failed` and
+  a `start`.
+- An **orphaned krdpserver** held the old port and had to be killed.
+- The Track Mouse effect, which I had only loaded for the session, was gone. That's why the
+  commands above make it permanent.
+
+Show FPS wouldn't have told me much anyway. It measures KWin's repaint rate, not frames
+delivered to the laptop or decoded there.
+
+### Every session was a stranger
+
+Every session, the laptop showed the Host Configuration dialog again, then a **Verify
+Certificate** prompt, then a windowed session I had to make full screen by hand.
+
+The reason: KDE Connect uses a **new port for every session** (5901, 5902, …) with a random
+password, and KRDC keeps its per-host memory, like FreeRDP keeps accepted certificates, per
+*host and port*. Disassembling `kdeconnect_virtualmonitor.so` showed where the port comes
+from: a function-local static counter, `VirtualMonitorPlugin::requestRdp()::s_port`, starting
+at 5901 and incremented per session. It lives only in memory, so it starts over whenever
+`kdeconnectd` restarts, which in practice means every login.
+
+That makes it fixable. On the laptop, four KRDC settings (key names from
+`/usr/share/config.kcfg/krdc.kcfg`):
+
+```bash
+kwriteconfig6 --file krdcrc --group General --key FullscreenOnConnect true
+kwriteconfig6 --file krdcrc --group General --key ShowPreferencesForNewConnections false
+kwriteconfig6 --file krdcrc --group General --key RememberHistory false
+kwriteconfig6 --file krdcrc --group RDP     --key ShareMedia ""
+```
+
+Then I deleted the per-port `[hostpreferences]` groups from `~/.config/krdcrc` and the
+history in `~/.local/share/krdc/bookmarks.xml`, after killing the leftover KRDC processes
+from earlier sessions (they could have written the old history back on exit).
+
+For the certificate: krdp uses the same one every session, `~/.local/share/krdpserver/krdp.crt`
+on atlas. It's self-signed and expired in June 2025, which doesn't matter, because FreeRDP
+only compares it with its pinned copy. FreeRDP pins it per port in
+`~/.config/freerdp/server/<host>_<port>.pem`, so I pinned it ahead of time for every port
+KDE Connect could pick. The port counter restarts at every login, so 99 sessions per
+login is plenty. After that, sessions opened straight into full screen with no questions,
+and neither machine needed a restart.
+
+### Measuring properly
+
+With the stream at native size, I wrote a small live monitor, `krdp-rate` (in the guide
+below). Once a second it prints the kbit/s the client acknowledged, krdpserver's CPU,
+atlas's GPU busy % and the TCP RTT. On the laptop I sampled KRDC's CPU from `/proc` in
+parallel. A 60-second trace, first idle and then dragging and scrolling on the virtual
+screen:
+
+<div className="mt-4 overflow-x-auto">
+  <table className="w-full text-left text-sm text-slate-300">
+    <thead className="border-b border-slate-700 text-slate-100">
+      <tr><th className="py-2 pr-4"></th><th className="py-2 pr-4">Idle</th><th className="py-2">Dragging / scrolling</th></tr>
+    </thead>
+    <tbody className="divide-y divide-slate-800">
+      <tr><td className="py-2 pr-4">Sent by atlas</td><td className="py-2 pr-4">~35 kbit/s</td><td className="py-2">1–5 Mbit/s</td></tr>
+      <tr><td className="py-2 pr-4">krdpserver CPU</td><td className="py-2 pr-4">0–1%</td><td className="py-2">2–4%</td></tr>
+      <tr><td className="py-2 pr-4">atlas GPU</td><td className="py-2 pr-4">3–5%</td><td className="py-2">up to 24%</td></tr>
+      <tr><td className="py-2 pr-4">RTT</td><td className="py-2 pr-4">7–50 ms (too little traffic to mean anything)</td><td className="py-2">2.5–3.5 ms, steady</td></tr>
+      <tr><td className="py-2 pr-4">KRDC CPU on the laptop</td><td className="py-2 pr-4">20–30% of a core</td><td className="py-2"><strong>90–135% of a core</strong></td></tr>
+    </tbody>
+  </table>
+</div>
+
+Two small lessons from writing that script. `pgrep -f 'krdpserver --virtual-monitor'`
+matched the measuring shell's own command line, so the pattern has to be anchored:
+`'^/usr/bin/krdpserver .*--virtual-monitor'`. And an earlier 45-second run had shown only
+17 kbit/s because almost nothing was moving on the screen. Check the bitrate before you
+draw conclusions from a trace.
+
+### Grain, and a quality bump
+
+Text on the laptop looked slightly grainy. To check, I took simultaneous screenshots on both
+sides: on the laptop headless over SSH (`spectacle -b -n -f -o shot.png`, with
+`XDG_RUNTIME_DIR`, `WAYLAND_DISPLAY` and `DBUS_SESSION_BUS_ADDRESS` set to the logged-in
+session), on atlas a full capture cropped to the virtual output and resized to 1920x1080.
+
+The mean absolute difference was only about 3/255 per channel. But zoomed in 2×, there were
+blocky halos around text and colour smearing on coloured links: H.264 with 4:2:0 chroma at
+krdp's configured `Quality=55`. krdp has a `--quality 0-100` flag, so the wrapper now adds
+`--quality 80` unless one is already given. Peaks went from about 5 to 17–18 Mbit/s, still
+under 1% of the link, and KRDC's CPU barely moved. Side by side, I could hardly tell the
+two screens apart.
+
+### Is KRDC stuck on one core?
+
+*Wrong guess #3:* KRDC at 90–135% of a core looked like a saturated thread. Per-thread
+numbers from `/proc/<pid>/task/*/stat` didn't back that up. Over a 14-minute session one
+`rdp_session` thread (FreeRDP's receive and decode loop) did about 85% of KRDC's work, but
+over 30 seconds of scrolling it averaged 61% of a core, not 100%. Short spikes are possible;
+a pegged core isn't what the numbers show. Hardware decode looked active (KRDC had
+`iHD_drv_video.so` mapped and `renderD128` open). I couldn't go deeper, because the laptop has no
+`perf` and `ptrace_scope=1`.
+
+What's left is the length of the pipeline: KWin composites, PipeWire hands the frame over,
+krdp encodes, the network carries it, FreeRDP decodes and reads it back from the GPU, Qt
+paints it, and the laptop's own compositor shows it. The cursor rides inside the video, so
+you feel every step of that.
+
+### Things that just don't work
+
+- **Rotation mid-session.** I rotated the laptop to portrait and the picture stayed
+  landscape. The stream size is fixed by `--virtual-monitor WxH` at the start. Meanwhile
+  atlas rotated its Virtual output to 864x1536, and krdp logged about 1,700
+  `Filter queue is full, dropping frame` messages. My best guess (unproven) is that KRDC
+  sent the new orientation and krdp rotated the output instead of resizing the stream. The
+  rule: choose the orientation before connecting.
+- **The cursor jumps to the top-left at connect.** KRDC sends the laptop's pointer position
+  on connect and atlas warps its real cursor there. Neither program has a setting for it.
+  That was the "pinned cursor" from the very start.
+- **Touch is just a mouse.** Neither KRDC's RDP plugin nor krdp implements RDP's touch
+  channel: there are no RDPEI symbols in either library. Qt turns the unhandled touches into
+  mouse events, so a tap is a click, a one-finger drag is a mouse drag (not a scroll), and
+  pinches do nothing.
+
+**Verdict:** it's great that this exists and works with one click. With the fixes above
+it's a decent screen for a chat window or a log. With the lag, a cursor that needs a
+ring to be seen, and touch that only acts as a mouse, it isn't the smooth third screen I
+wanted.
+
+## Part 2: Sunshine, Moonlight and a monitor that isn't there
+
+### The dongle myth
+
+Sunshine (a game-streaming host) and Moonlight (its client) are built for exactly what RDP
+wasn't doing well here: 60 fps, hardware decode on the client, a local cursor. I already had
+both installed and paired between these two machines, for streaming one screen at a time.
+
+The usual advice for streaming a monitor you don't physically have is an **HDMI dummy
+plug**. On Linux with amdgpu you can fake one in software:
+
+- The 780M exposes **seven DisplayPort connectors** (`card1-DP-1` to `DP-7`), all
+  `disconnected`, each with a real `drm_dp_aux` behind it.
+- DRM's debugfs interface lets you **override a connector's EDID** and **force it on** at
+  runtime, with no kernel parameters and no reboot.
+- For the EDID I used **the laptop's own panel EDID**, so the fake monitor offers exactly
+  the laptop's mode: 1920x1080 at 60.03 Hz.
+
+I picked DP-7 because DP-1 once had a real monitor attached. One caveat: if your chosen
+connector is wired to a physical USB-C or DP port, a real monitor plugged in there gets the
+fake EDID.
+
+### Creating it
+
+```bash
+# grab the laptop's EDID (128 bytes)
+ssh elitebook 'cat /sys/class/drm/card*-eDP-1/edid' > elitebook-edid.bin
+
+# as root: override the EDID and force the connector on
+D=/sys/kernel/debug/dri/0000:c4:00.0      # find yours: ls -d /sys/kernel/debug/dri/*/DP-7
+cat elitebook-edid.bin > $D/DP-7/edid_override
+echo on > /sys/class/drm/card1-DP-7/status
+cat /sys/class/drm/card1-DP-7/modes       # 1920x1080
+
+# KWin doesn't notice on its own: send a DRM change uevent so it rescans
+udevadm trigger --action=change /sys/class/drm/card1
+kscreen-doctor -o                         # DP-7 shows up as a normal output
+```
+
+amdgpu did the modeset happily with nothing attached: enabled, DPMS on, no kernel errors.
+KWin now had a third monitor.
+
+### Capturing one screen while the others stay on
+
+My Sunshine setup used **KMS capture** with `output_name = 0`, which picks a screen by
+index. A little helper script, `sunshine-display only <OUTPUT>`, turned every other screen
+off so the one I wanted became index 0. That can't stream one screen while the other two
+stay on.
+
+This Sunshine build also has **KWin capture**, using the same `zkde_screencast` protocol krdp
+uses, and with it `output_name` is a **connector name**:
+
+```ini
+# ~/.config/sunshine/sunshine.conf
+capture = kwin
+output_name = DP-7
+```
+
+After a restart the log confirmed it:
+
+```
+[kwingrab] Found output: HDMI-A-2 order: 0 position: 1536x1080 resolution: 1920x1080
+[kwingrab] Found output: DP-7 order: 2 position: 0x1080 resolution: 1920x1080
+[kwingrab] Found output: HDMI-A-1 order: 1 position: 1319x0 resolution: 1920x1080
+[kwingrab] Screencasting output name DP-7 position 0x1080 resolution 1920x1080
+```
+
+KWin capture only sees *enabled* outputs, and when DP-7 is off it falls back to another
+one. So my older single-screen apps still work. `Failed to gain CAP_SYS_ADMIN` in the log is
+harmless with KWin capture.
+
+### On only while streaming
+
+A fake monitor that's always enabled is a trap: windows and the mouse wander onto a screen
+nobody is looking at. So DP-7 stays **disabled** in KWin, and the Sunshine app turns it on
+in its `prep-cmd`. I added an `extend` subcommand to `sunshine-display` that enables an
+output and applies a layout, with `restore` putting everything back when the stream ends.
+
+One gotcha: enabling DP-7 on its own made KWin place it *on top of* the ARZOPA, because it
+left the other outputs where they were. So `extend` applies the whole three-screen layout in
+**one** `kscreen-doctor` call: the laptop left of the ARZOPA, the Philips above them.
+
+### The first real stream
+
+Much smoother, immediately. Moonlight's log on the laptop said
+`Using VAAPI accelerated renderer on wayland` and `Video stream is 1920x1080x60`, at
+15 Mbit/s. It happened to connect over Tailscale instead of the LAN, and was smooth anyway.
+
+One confusing moment: System Settings on atlas showed the new screen *right* of the Philips,
+while the cursor clearly crossed from the laptop into the ARZOPA on the *left*. That
+Settings window had been open since before DP-7 existed. It had caught KWin's first
+auto-placement and never refreshed. `kscreen-doctor -o` showed the truth. Reopen System
+Settings after hotplugging, and never press Apply in a stale one.
+
+### Real touch, after one fix
+
+Moonlight was already set to direct touch (`abstouchmode=true`), and at stream start Sunshine
+creates `libvirtualhid Touchscreen` and `libvirtualhid Pen Tablet` devices on atlas. Yet taps
+did nothing. KWin's D-Bus view of the touchscreen explained it: `outputName` was empty, so
+the touchscreen wasn't mapped to any screen.
+
+(`libinput` the CLI isn't installed on atlas, so to watch raw events I read
+`/dev/input/eventN` directly with a few lines of Python. Being in the `input` group makes
+that possible.)
+
+The fix is one D-Bus property per device:
+
+```bash
+ev=event19   # the libvirtualhid Touchscreen's handler, from /proc/bus/input/devices
+qdbus6 org.kde.KWin /org/kde/KWin/InputDevice/$ev org.freedesktop.DBus.Properties.Set \
+       org.kde.KWin.InputDevice outputName DP-7
+```
+
+Then the same for the Pen Tablet. A 60-second recording showed about 100 touch events, and
+taps and drags now land on atlas. Sunshine creates new devices every stream, but KWin stores
+the mapping by device name in `~/.config/kcminputrc` against DP-7's uuid. That uuid stays
+stable because the EDID is fixed, so the mapping survives. I couldn't test the pen: no stylus.
+
+### Side by side
+
+<div className="mt-4 overflow-x-auto">
+  <table className="w-full text-left text-sm text-slate-300">
+    <thead className="border-b border-slate-700 text-slate-100">
+      <tr><th className="py-2 pr-4"></th><th className="py-2 pr-4">KDE Connect + KRDC</th><th className="py-2">Sunshine + Moonlight + fake DP</th></tr>
+    </thead>
+    <tbody className="divide-y divide-slate-800">
+      <tr><td className="py-2 pr-4">Setup</td><td className="py-2 pr-4">One click</td><td className="py-2">Root service, EDID, Sunshine config, app entry, touch mapping</td></tr>
+      <tr><td className="py-2 pr-4">Motion</td><td className="py-2 pr-4">Laggy</td><td className="py-2">Smooth, 60 fps</td></tr>
+      <tr><td className="py-2 pr-4">Host cursor</td><td className="py-2 pr-4">Invisible (ring workaround)</td><td className="py-2">Shown</td></tr>
+      <tr><td className="py-2 pr-4">Touch</td><td className="py-2 pr-4">Taps become mouse clicks</td><td className="py-2">Real touch</td></tr>
+      <tr><td className="py-2 pr-4">Picture</td><td className="py-2 pr-4">Grainy at quality 55, fine at 80</td><td className="py-2">1080p60 at 15 Mbit/s</td></tr>
+      <tr><td className="py-2 pr-4">The screen exists</td><td className="py-2 pr-4">Only during a session</td><td className="py-2">Always connected, enabled only while streaming</td></tr>
+      <tr><td className="py-2 pr-4">Per-session friction</td><td className="py-2 pr-4">New port each time (fixable)</td><td className="py-2">None after pairing</td></tr>
+    </tbody>
+  </table>
+</div>
+
+## The guide: doing this yourself
+
+Everything here is tested on the machines above unless it says otherwise. Replace `DP-7`,
+`card1`, output names and addresses with your own.
+
+### Option A: make KDE Connect's monitor bearable
+
+Worth doing if one click matters more to you than smoothness.
+
+**1. Stream at the laptop's real size, at a better quality.** Adjust the size pair to what
+your laptop requests (look at `kscreen-doctor -o` during a session). The portrait mapping is
+untested; I never saw that request.
+
+```sh
+#!/bin/sh
+# /usr/local/bin/krdpserver — wrapper for KDE Connect's "Use device as an external monitor".
+# Stream the laptop's native size instead of its rounded-up request, at quality 80
+# (krdp's config default of 55 smears text). Remove this file to undo.
+q=80
+for a; do
+  shift
+  case $a in
+    3072x1728@2) a=1920x1080@1.25 ;;
+    1728x3072@2) a=1080x1920@1.25 ;;
+    --quality) q= ;;
+  esac
+  set -- "$@" "$a"
+done
+exec /usr/bin/krdpserver ${q:+--quality $q} "$@"
+```
+
+```bash
+sudo install -m 755 krdpserver /usr/local/bin/krdpserver
+```
+
+**2. Fix the scale once** during a session, since KWin remembers the virtual output by uuid:
+
+```bash
+kscreen-doctor -o                      # find the Virtual output's index
+kscreen-doctor output.1.scale.1.25
+```
+
+**3. Stop KRDC treating every session as a new host.** On the laptop, set the four `krdcrc`
+keys from earlier, then remove old `[hostpreferences]` groups from `~/.config/krdcrc` and
+old entries from `~/.local/share/krdc/bookmarks.xml` (close KRDC first). Then pin krdp's
+certificate for every port KDE Connect may use, run from the host:
+
+```bash
+ip=192.168.1.50   # the host's LAN address, as the laptop sees it
+cat ~/.local/share/krdpserver/krdp.crt | ssh laptop "
+  d=~/.config/freerdp/server; mkdir -p \$d; cat > /tmp/krdp-host.pem
+  for p in \$(seq 5900 5999); do f=\$d/${ip}_\$p.pem; [ -e \$f ] || cp /tmp/krdp-host.pem \$f; done
+  rm /tmp/krdp-host.pem"
+```
+
+If krdp ever generates a new certificate, the prompt comes back and the copies need
+replacing.
+
+**4. Make the cursor visible** with the Track Mouse commands from Part 1, and pick the
+laptop's orientation before you connect.
+
+<details className="mt-4 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-slate-300">
+<summary className="cursor-pointer font-semibold text-slate-100">krdp-rate: live bitrate, CPU, GPU and RTT of a session</summary>
+
+```sh
+#!/bin/sh
+# Live bitrate of the KDE Connect virtual-monitor stream (krdpserver --virtual-monitor).
+# Usage: krdp-rate [seconds]   (no argument = run until Ctrl+C)
+# Columns: time, kbit/s sent to the client, krdpserver CPU % of one core, GPU busy %, TCP rtt ms.
+pid=$(pgrep -f '^/usr/bin/krdpserver .*--virtual-monitor' | head -1)
+[ -n "$pid" ] || { echo "no virtual-monitor session running" >&2; exit 1; }
+port=$(tr '\0' ' ' < /proc/$pid/cmdline | grep -oE -- '--port [0-9]+' | cut -d' ' -f2)
+gpu=$(ls /sys/class/drm/card*/device/gpu_busy_percent 2>/dev/null | head -1)
+acked() { ss -tin "( sport = :$port )" | grep -oE 'bytes_acked:[0-9]+' | cut -d: -f2 | head -1; }
+ticks() { awk '{print $14+$15}' /proc/$pid/stat; }
+echo "session pid $pid, port $port"
+printf '%-8s %8s %6s %5s %7s\n' time kbit/s cpu% gpu% rtt
+b0=$(acked); c0=$(ticks); n=0
+while [ -z "$1" ] || [ $n -lt "$1" ]; do
+  sleep 1; n=$((n+1))
+  [ -d /proc/$pid ] || { echo "session ended"; exit 0; }
+  b1=$(acked); c1=$(ticks)
+  rtt=$(ss -tin "( sport = :$port )" | grep -oE ' rtt:[0-9.]+' | cut -d: -f2 | head -1)
+  printf '%-8s %8s %6s %5s %7s\n' "$(date +%T)" $(( (${b1:-0}-${b0:-0})*8/1000 )) $((c1-c0)) "$(cat $gpu 2>/dev/null)" "$rtt"
+  b0=$b1; c0=$c1
+done
+```
+
+</details>
+
+### Option B: Sunshine with a software dummy monitor
+
+This assumes Sunshine on the desktop and Moonlight on the laptop, already paired, a
+Plasma 6 Wayland session, and an AMD GPU with a spare connector. Sunshine needs a build
+with KWin capture (2026.914 has it).
+
+**1. Save the laptop's EDID on the desktop.**
+
+```bash
+ssh laptop 'cat /sys/class/drm/card*-eDP-1/edid' > elitebook-edid.bin
+sudo install -Dm644 elitebook-edid.bin /usr/local/lib/edid/elitebook.bin
+```
+
+**2. Install the script that fakes the connector.**
+
+```sh
+#!/bin/sh
+# /usr/local/sbin/fake-output-dp7 — make the unused DP-7 connector look like the
+# laptop's panel, through a runtime debugfs EDID override. No kernel parameters.
+# KWin keeps it disabled until sunshine-display enables it.
+#   fake-output-dp7 on | off
+set -e
+C=DP-7
+EDID=/usr/local/lib/edid/elitebook.bin
+for i in $(seq 1 30); do
+  D=$(ls -d /sys/kernel/debug/dri/*/$C 2>/dev/null | head -1)
+  [ -n "$D" ] && break
+  sleep 1
+done
+[ -n "$D" ] || { echo "no debugfs entry for $C" >&2; exit 1; }
+case $1 in
+  on)  cat "$EDID" > "$D/edid_override"; echo on > /sys/class/drm/card1-$C/status ;;
+  off) echo detect > /sys/class/drm/card1-$C/status; echo reset > "$D/edid_override" ;;
+  *)   echo "usage: $0 on|off" >&2; exit 2 ;;
+esac
+# Tell a running KWin to rescan its outputs.
+udevadm trigger --action=change /sys/class/drm/card1
+echo "$C: $(cat /sys/class/drm/card1-$C/status)"
+```
+
+**3. Run it at boot**, before the display manager:
+
+```ini
+# /etc/systemd/system/fake-output-dp7.service
+[Unit]
+Description=Fake laptop-shaped monitor on DP-7 (for Sunshine)
+Requires=sys-kernel-debug.mount
+After=sys-kernel-debug.mount systemd-udevd.service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/fake-output-dp7 on
+ExecStop=/usr/local/sbin/fake-output-dp7 off
+
+[Install]
+WantedBy=graphical.target
+```
+
+```bash
+sudo install -Dm755 fake-output-dp7 /usr/local/sbin/fake-output-dp7
+sudo install -m644 fake-output-dp7.service /etc/systemd/system/
+sudo systemctl enable --now fake-output-dp7.service
+```
+
+I chose this over kernel parameters, which would be
+`drm.edid_firmware=DP-7:edid/elitebook.bin video=DP-7:e` plus the EDID in the initramfs,
+since amdgpu loads early. One honest caveat: I haven't yet rebooted to confirm the service
+brings DP-7 back on its own.
+
+Once DP-7 appears in `kscreen-doctor -o`, **disable it** in Display Settings. It should
+only be on while you stream.
+
+**4. Point Sunshine at the connector**, in `~/.config/sunshine/sunshine.conf`, and restart
+Sunshine:
+
+```ini
+capture = kwin
+output_name = DP-7
+```
+
+**5. Install `sunshine-display`**, which enables DP-7 with a full layout at stream start and
+restores the old layout at the end.
+
+<details className="mt-4 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 text-slate-300">
+<summary className="cursor-pointer font-semibold text-slate-100">~/.local/bin/sunshine-display</summary>
+
+```bash
+#!/usr/bin/env bash
+# Pick which monitor Sunshine streams.
+#
+# With KWin capture (capture = kwin) and output_name = DP-7, Sunshine grabs DP-7 when
+# it is enabled and falls back to another output when it is off, so:
+#   - "only <OUTPUT>" leaves exactly one output enabled: that one is grabbed;
+#   - "extend DP-7" turns DP-7 on next to the others: DP-7 is grabbed.
+#
+#   sunshine-display only <OUTPUT>   leave only <OUTPUT> enabled (saves layout)
+#   sunshine-display extend <OUTPUT> [kscreen-doctor args...]
+#                                    also enable <OUTPUT>, keep the others on, then
+#                                    apply the given layout args (saves layout)
+#   sunshine-display restore         put the saved layout back
+#   sunshine-display list            show outputs and the current Sunshine index
+#
+# Meant to be called from Sunshine's per-app prep-cmd (do / undo).
+set -euo pipefail
+
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+export WAYLAND_DISPLAY="${WAYLAND_DISPLAY:-wayland-0}"
+
+STATE="$XDG_RUNTIME_DIR/sunshine-display.state"
+
+json() { kscreen-doctor -j; }
+
+save_state() {
+  # Don't clobber a previous save: two nested "only" calls must still restore
+  # the original layout.
+  [[ -e $STATE ]] && return 0
+  json | jq -r '
+    .outputs[]
+    | [ .name,
+        (.enabled|tostring),
+        (.priority|tostring),
+        "\(.pos.x),\(.pos.y)",
+        (.scale|tostring),
+        ((.currentModeId as $m | .modes[] | select(.id == $m) | .name) // "")
+      ] | @tsv' > "$STATE"
+}
+
+cmd_only() {
+  local target=$1
+  json | jq -e --arg t "$target" '.outputs[] | select(.name == $t and .connected)' >/dev/null \
+    || { echo "sunshine-display: no connected output named '$target'" >&2; exit 1; }
+
+  save_state
+
+  local args=() name enabled
+  while IFS=$'\t' read -r name enabled; do
+    if [[ $name == "$target" ]]; then
+      args+=("output.$name.enable" "output.$name.priority.1")
+    elif [[ $enabled == true ]]; then
+      args+=("output.$name.disable")
+    fi
+  done < <(json | jq -r '.outputs[] | select(.connected) | [.name, (.enabled|tostring)] | @tsv')
+
+  kscreen-doctor "${args[@]}"
+  sleep 1  # let KWin settle before Sunshine enumerates outputs
+}
+
+cmd_extend() {
+  local target=$1
+  json | jq -e --arg t "$target" '.outputs[] | select(.name == $t and .connected)' >/dev/null \
+    || { echo "sunshine-display: no connected output named '$target'" >&2; exit 1; }
+
+  save_state
+  shift
+  # One call, so KWin never shows the new output overlapping the others.
+  kscreen-doctor "output.$target.enable" "$@"
+  sleep 1  # let KWin settle before Sunshine looks the output up
+}
+
+cmd_restore() {
+  [[ -e $STATE ]] || { echo "sunshine-display: nothing to restore" >&2; exit 0; }
+
+  # Re-enable everything first, then reapply geometry, so no intermediate step
+  # leaves zero outputs enabled.
+  local enable=() geom=() name enabled priority pos scale mode
+  while IFS=$'\t' read -r name enabled priority pos scale mode; do
+    if [[ $enabled == true ]]; then
+      enable+=("output.$name.enable")
+      [[ -n $mode ]] && geom+=("output.$name.mode.$mode")
+      geom+=("output.$name.scale.$scale" "output.$name.position.$pos" "output.$name.priority.$priority")
+    else
+      enable+=("output.$name.disable")
+    fi
+  done < "$STATE"
+
+  kscreen-doctor "${enable[@]}"
+  kscreen-doctor "${geom[@]}"
+  rm -f "$STATE"
+}
+
+cmd_list() {
+  echo "Sunshine's most recent KMS enumeration (index = output_name):"
+  journalctl --user -u sunshine -b --no-pager 2>/dev/null \
+    | awk '/Start of KMS monitor list/ {buf=""; next}
+           /End of KMS monitor list/   {last=buf; next}
+           /Monitor [0-9]+ is/         {sub(/.*Info: /,""); buf = buf "  " $0 "\n"}
+           END {printf "%s", last}'
+  echo
+  echo "Current layout:"
+  json | jq -r '.outputs[] | "  \(.name)  connected=\(.connected) enabled=\(.enabled) priority=\(.priority) \(.pos.x),\(.pos.y) scale=\(.scale)"'
+  if [[ -e $STATE ]]; then
+    echo
+    echo "Saved layout pending restore ($STATE):"
+    sed 's/^/  /' "$STATE"
+  fi
+}
+
+case ${1:-} in
+  only)    cmd_only "${2:?usage: sunshine-display only <OUTPUT>}" ;;
+  extend)  shift; cmd_extend "${1:?usage: sunshine-display extend <OUTPUT> [kscreen-doctor args...]}" "${@:2}" ;;
+  restore) cmd_restore ;;
+  list)    cmd_list ;;
+  *) echo "usage: sunshine-display {only <OUTPUT>|extend <OUTPUT> [args...]|restore|list}" >&2; exit 2 ;;
+esac
+```
+
+</details>
+
+**6. Add a Sunshine app** in `~/.config/sunshine/apps.json` (or the web UI). The layout
+arguments are mine: the laptop at 125% left of the ARZOPA, the Philips above. Use absolute
+paths.
+
+```json
+{
+  "name": "elitebook (extended screen)",
+  "image-path": "desktop.png",
+  "prep-cmd": [
+    {
+      "do": "/home/you/.local/bin/sunshine-display extend DP-7 output.DP-7.scale.1.25 output.DP-7.position.0,1080 output.HDMI-A-2.position.1536,1080 output.HDMI-A-1.position.1319,0",
+      "undo": "/home/you/.local/bin/sunshine-display restore"
+    }
+  ]
+}
+```
+
+**7. Map touch to the new screen**, once. Start a stream, find the `libvirtualhid Touchscreen`
+and `libvirtualhid Pen Tablet` handlers in `/proc/bus/input/devices`, and set `outputName`
+on each with the `qdbus6` command from Part 2. KWin remembers it in `kcminputrc`.
+
+**8. On the laptop**, set Moonlight to 1920x1080, 60 fps, full screen, and turn on direct
+touch (`abstouchmode=true`), then launch the new app.
+
+## Still open
+
+- Rebooting to confirm `fake-output-dp7.service` brings DP-7 back by itself.
+- Portrait with Sunshine needs a portrait EDID or a custom mode. Not attempted.
+- Pen input, once I find a stylus.
+- Moonlight picked the Tailscale route over the LAN. Pairing against the LAN address might
+  shave off a little more latency.
+- A few KDE bug reports worth filing: KWin crashing when Show FPS loads during a screencast,
+  KDE Connect rounding a 1.25 scale up to 2 in its size request, and krdp dropping frames
+  when the client rotates.
