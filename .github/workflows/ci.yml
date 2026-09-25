@@ -26,7 +26,7 @@ jobs:
       # locate the store. No `version` input — pnpm/action-setup reads it from
       # package.json "packageManager", so the version lives in one place.
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       # The version comes from .node-version, which deploy.yml reads too — one
       # file, so the checks and the published build can never disagree. It says
