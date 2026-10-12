@@ -97,7 +97,7 @@ export default async function Home() {
       {/* Hero scene. Fits the initial viewport: no scroll cue, no gate, and the
           destination menu is inside it, so a recruiter reaches the CV in one click and a
           crawler reaches it in one hop. */}
-      <header className="relative isolate overflow-hidden pt-16 pb-20 md:pt-24 md:pb-28">
+      <header className="relative isolate overflow-hidden pt-14 pb-14 md:pt-24 md:pb-28">
         <Starfield />
         <div className="relative mx-auto grid w-full max-w-[1400px] gap-12 px-5 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:items-center">
           <div>

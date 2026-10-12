@@ -25,7 +25,7 @@ export function HubMenu({ className }: { className?: string }) {
   const reduce = useReducedMotion();
 
   return (
-    <ul className={`grid gap-2 sm:grid-cols-2 ${className ?? ""}`}>
+    <ul className={`grid grid-cols-2 gap-2 ${className ?? ""}`}>
       {NAV_LINKS.map((link, index) => (
         <motion.li
           key={link.href}
