@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Code, Cpu, GlobeSimple, HardDrives, Translate } from "@phosphor-icons/react/dist/ssr";
+import { Code, Cpu, GlobeSimple, HardDrives, MapPin, Translate, Wrench } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { PixelLabel } from "@/components/pixel-label";
 import { Reveal } from "@/components/reveal";
@@ -18,7 +18,7 @@ const CATEGORY_ICON = {
   Frontend: Code,
   DevOps: Cpu,
   Cloud: GlobeSimple,
-  Tools: Cpu,
+  Tools: Wrench,
 } as const;
 
 export default function CvPage() {
@@ -35,6 +35,12 @@ export default function CvPage() {
     name: profile.name,
     jobTitle: profile.title,
     email: `mailto:${profile.email}`,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: "Avellino",
+      addressRegion: "Campania",
+      addressCountry: "IT",
+    },
     knowsLanguage: profile.languages.map((language) => language.name),
     knowsAbout: skills.map((skill) => skill.name),
     alumniOf: { "@type": "CollegeOrUniversity", name: education.institution },
@@ -52,7 +58,9 @@ export default function CvPage() {
     <>
       <script
         type="application/ld+json"
-        // Safe: the object is fully controlled and JSON.stringify escapes it for JSON-LD.
+        // Safe: every value is a static literal from CV_DATA, never user input, so the
+        // serialized object cannot contain a `</script>` sequence. JSON.stringify does not
+        // escape one.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
       />
       <PageHeader
@@ -159,6 +167,12 @@ export default function CvPage() {
               >
                 {profile.phone}
               </a>
+            </li>
+            <li>
+              <span className="text-accent inline-flex items-center gap-1.5">
+                <MapPin size={14} weight="regular" aria-hidden />
+                {profile.location}
+              </span>
             </li>
           </ul>
         </section>

@@ -12,7 +12,15 @@ import type { Experience } from "@/lib/cv-data";
  * Motion only, no scroll hijack and no scroll listener. The scale is driven by each card's
  * own progress, so there is nothing to fight with CSS `position: sticky`.
  */
-function StackCard({ experience, index }: { experience: Experience; index: number }) {
+function StackCard({
+  experience,
+  index,
+  isLast,
+}: {
+  experience: Experience;
+  index: number;
+  isLast: boolean;
+}) {
   const ref = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
@@ -23,10 +31,10 @@ function StackCard({ experience, index }: { experience: Experience; index: numbe
     <article
       ref={ref}
       style={{ zIndex: index + 1 }}
-      className="sticky top-24 mb-6 last:mb-0"
+      className="sticky top-24 mb-6 last:mb-0 motion-reduce:static"
     >
       <motion.div
-        style={reduce ? undefined : { scale, opacity }}
+        style={reduce || isLast ? undefined : { scale, opacity }}
         className="border-line bg-panel rounded-panel border p-6 md:p-8"
       >
         <div className="text-ink-muted flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
@@ -65,7 +73,12 @@ export function ExperienceStack({ experiences }: { experiences: Experience[] }) 
   return (
     <div>
       {experiences.map((experience, index) => (
-        <StackCard key={`${experience.company}-${experience.period}`} experience={experience} index={index} />
+        <StackCard
+          key={`${experience.company}-${experience.period}`}
+          experience={experience}
+          index={index}
+          isLast={index === experiences.length - 1}
+        />
       ))}
     </div>
   );
