@@ -603,7 +603,7 @@ import { themeInitScript } from "@/lib/theme";
 ```tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "@phosphor-icons/react";
 import { resolveTheme, THEME_ATTRIBUTE, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
 
@@ -611,19 +611,37 @@ import { resolveTheme, THEME_ATTRIBUTE, THEME_STORAGE_KEY, type Theme } from "@/
  * The toggle reads the attribute the pre-paint script already set, so it never disagrees
  * with the first painted frame. It is a client leaf with no props: nothing above it needs
  * to know the theme.
+ *
+ * The theme lives in a DOM attribute, which is an external store, so it is read with
+ * `useSyncExternalStore` rather than copied into state from an effect. Copying it in an
+ * effect would trip this repo's `react-hooks/set-state-in-effect` lint rule and would make
+ * the server render emit an icon it might not mean. `getServerSnapshot` returning `null`
+ * keeps the server markup icon-free, and the MutationObserver keeps the button honest if
+ * the attribute is changed by anything else.
  */
-export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme | null>(null);
 
-  useEffect(() => {
-    const current = document.documentElement.getAttribute(THEME_ATTRIBUTE);
-    setTheme(
-      resolveTheme(
-        current,
-        window.matchMedia("(prefers-color-scheme: dark)").matches,
-      ),
-    );
-  }, []);
+function subscribe(onStoreChange: () => void): () => void {
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: [THEME_ATTRIBUTE],
+  });
+  return () => observer.disconnect();
+}
+
+function getSnapshot(): Theme {
+  return resolveTheme(
+    document.documentElement.getAttribute(THEME_ATTRIBUTE),
+    window.matchMedia("(prefers-color-scheme: dark)").matches,
+  );
+}
+
+function getServerSnapshot(): null {
+  return null;
+}
+
+export function ThemeToggle() {
+  const theme = useSyncExternalStore<Theme | null>(subscribe, getSnapshot, getServerSnapshot);
 
   function toggle() {
     const next: Theme = theme === "dark" ? "light" : "dark";
@@ -633,7 +651,6 @@ export function ThemeToggle() {
     } catch {
       // Private mode and blocked storage: the attribute still applies for this session.
     }
-    setTheme(next);
   }
 
   const label = theme === null ? "Switch theme" : `Switch to ${theme === "dark" ? "light" : "dark"} theme`;
@@ -647,7 +664,11 @@ export function ThemeToggle() {
       className="focus-ring text-ink-muted inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:text-ink"
     >
       {/* Rendered only after mount, so the server and client markup cannot disagree. */}
-      {theme === "dark" ? <Sun size={18} weight="regular" aria-hidden /> : <Moon size={18} weight="regular" aria-hidden />}
+      {theme === null ? null : theme === "dark" ? (
+        <Sun size={18} weight="regular" aria-hidden />
+      ) : (
+        <Moon size={18} weight="regular" aria-hidden />
+      )}
     </button>
   );
 }
