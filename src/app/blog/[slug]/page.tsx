@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypePrettyCode, { type Options as PrettyCodeOptions } from "rehype-pretty-code";
-import { ArrowLeft, CalendarBlank, Tag } from "@phosphor-icons/react/dist/ssr";
+import { ArrowLeft, CalendarBlank } from "@phosphor-icons/react/dist/ssr";
+import { ReadingProgress } from "@/components/reading-progress";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
 const prettyCodeOptions: PrettyCodeOptions = {
@@ -26,39 +27,38 @@ export async function generateMetadata({
   const post = await getPostBySlug(slug);
   if (!post) return { title: "Post not found" };
   return {
-    title: `${post.title} — Blog`,
+    title: `${post.title} | Blog`,
     description: post.description,
   };
 }
 
 const mdxComponents = {
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className="mt-8 text-3xl font-bold tracking-tight text-white" {...props} />
+    <h1 className="font-display text-ink mt-10 text-3xl font-semibold tracking-tight" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="mt-8 text-2xl font-semibold tracking-tight text-white" {...props} />
+    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="mt-6 text-xl font-semibold text-slate-100" {...props} />
+    <h3 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mt-4 leading-relaxed text-slate-300" {...props} />
+    <p className="text-ink-muted mt-4 max-w-[65ch] leading-relaxed" {...props} />
   ),
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a className="text-emerald-400 underline-offset-4 hover:underline" {...props} />
+    <a className="text-accent focus-ring underline-offset-4 hover:underline" {...props} />
   ),
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className="mt-4 list-disc space-y-1 pl-6 text-slate-300" {...props} />
+    <ul className="text-ink-muted mt-4 max-w-[65ch] list-disc space-y-1 pl-6" {...props} />
   ),
-  ol: (props: React.OlHTMLAttributes<HTMLOListElement>) => (
-    <ol className="mt-4 list-decimal space-y-1 pl-6 text-slate-300" {...props} />
+  ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
+    <ol className="text-ink-muted mt-4 max-w-[65ch] list-decimal space-y-1 pl-6" {...props} />
   ),
   code: (props: React.HTMLAttributes<HTMLElement> & { "data-language"?: string }) => {
-    // `rehype-pretty-code` adds `data-language` to highlighted blocks; leave those untouched.
     if (props["data-language"]) return <code {...props} />;
     return (
       <code
-        className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-sm text-emerald-300"
+        className="bg-sunken text-accent rounded-chip px-1.5 py-0.5 font-mono text-sm"
         {...props}
       />
     );
@@ -66,37 +66,29 @@ const mdxComponents = {
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
     <pre
       className={[
-        "mt-4 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 py-4 text-sm leading-relaxed",
-        // strip inner code styling
-        "[&_code]:bg-transparent [&_code]:p-0 [&_code]:text-slate-200",
-        // each rehype-pretty-code line is a span with data-line; turn them into block rows with horizontal padding
+        "border-line bg-sunken mt-6 overflow-x-auto rounded-panel border py-4 text-sm leading-relaxed",
+        "[&_code]:bg-transparent [&_code]:p-0 [&_code]:text-ink",
         "[&_code>span[data-line]]:block [&_code>span[data-line]]:px-4",
-        // full-line highlight (```ts {1,3-5})
-        "[&_code>span[data-highlighted-line]]:bg-emerald-500/10",
-        "[&_code>span[data-highlighted-line]]:border-l-2 [&_code>span[data-highlighted-line]]:border-emerald-400",
+        "[&_code>span[data-highlighted-line]]:bg-accent/10",
+        "[&_code>span[data-highlighted-line]]:border-accent [&_code>span[data-highlighted-line]]:border-l-2",
         "[&_code>span[data-highlighted-line]]:pl-[14px]",
-        // inline word/char highlight (```ts /word/)
-        "[&_mark[data-highlighted-chars]]:bg-emerald-500/20 [&_mark[data-highlighted-chars]]:text-emerald-200",
-        "[&_mark[data-highlighted-chars]]:rounded [&_mark[data-highlighted-chars]]:px-1",
-        // line numbers (only when showLineNumbers is set on the code fence).
-        // rehype-pretty-code puts `data-line-numbers` on the <code>, not the <pre>,
-        // so these must be scoped to `code[data-line-numbers]` rather than `&[...]`.
-        // Use `content-[counter(line)]` (which sets --tw-content) and NOT
-        // `[content:counter(line)]`: every `before:*` utility re-emits
-        // `content: var(--tw-content)`, so a raw content declaration gets clobbered
-        // by whichever before: rule Tailwind happens to emit last.
+        "[&_mark[data-highlighted-chars]]:bg-accent/20 [&_mark[data-highlighted-chars]]:rounded",
+        "[&_mark[data-highlighted-chars]]:px-1",
+        // Line numbers: `content-[counter(line)]` sets --tw-content; a raw
+        // `[content:counter(line)]` is clobbered by any `before:*` utility. Scoped to
+        // `code[data-line-numbers]`, not `pre` (commit 951770d).
         "[&_code[data-line-numbers]]:[counter-reset:line]",
         "[&_code[data-line-numbers]>span[data-line]]:before:content-[counter(line)]",
         "[&_code[data-line-numbers]>span[data-line]]:before:[counter-increment:line]",
         "[&_code[data-line-numbers]>span[data-line]]:before:mr-4 [&_code[data-line-numbers]>span[data-line]]:before:inline-block",
         "[&_code[data-line-numbers]>span[data-line]]:before:w-6 [&_code[data-line-numbers]>span[data-line]]:before:text-right",
-        "[&_code[data-line-numbers]>span[data-line]]:before:text-slate-600 [&_code[data-line-numbers]>span[data-line]]:before:tabular-nums",
+        "[&_code[data-line-numbers]>span[data-line]]:before:text-ink-muted [&_code[data-line-numbers]>span[data-line]]:before:tabular-nums",
       ].join(" ")}
       {...props}
     />
   ),
   strong: (props: React.HTMLAttributes<HTMLElement>) => (
-    <strong className="font-semibold text-slate-100" {...props} />
+    <strong className="text-ink font-semibold" {...props} />
   ),
 };
 
@@ -109,49 +101,79 @@ export default async function BlogPostPage({
   const post = await getPostBySlug(slug);
   if (!post) notFound();
 
+  const posts = await getAllPosts();
+  const index = posts.findIndex((candidate) => candidate.slug === slug);
+  const newer = index > 0 ? posts[index - 1] : undefined;
+  const older = index >= 0 && index < posts.length - 1 ? posts[index + 1] : undefined;
+
   return (
-    <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
-      <Link
-        href="/blog"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-emerald-300"
-      >
-        <ArrowLeft size={16} weight="regular" />
-        Back to blog
-      </Link>
-      <article className="mt-6">
-        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-          <span className="inline-flex items-center gap-1.5">
-            <CalendarBlank size={14} weight="regular" />
+    <>
+      <ReadingProgress />
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
+        <Link
+          href="/blog"
+          className="focus-ring text-ink-muted hover:text-ink inline-flex items-center gap-1.5 text-sm transition-colors"
+        >
+          <ArrowLeft size={16} weight="regular" aria-hidden />
+          All notes
+        </Link>
+        <article className="mt-8">
+          <p className="text-ink-muted tabular inline-flex items-center gap-1.5 font-mono text-xs">
+            <CalendarBlank size={14} weight="regular" aria-hidden />
             {post.date}
-          </span>
-          {post.tags?.map((t) => (
-            <span
-              key={t}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/70 px-2 py-0.5 font-mono text-[10px] text-slate-300"
-            >
-              <Tag size={12} weight="regular" />
-              {t}
-            </span>
-          ))}
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-          {post.title}
-        </h1>
-        {post.description && (
-          <p className="mt-3 text-lg text-slate-400">{post.description}</p>
-        )}
-        <div className="mt-8 border-t border-slate-800 pt-6">
-          <MDXRemote
-            source={post.content}
-            components={mdxComponents}
-            options={{
-              mdxOptions: {
-                rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
-              },
-            }}
-          />
-        </div>
-      </article>
-    </main>
+          </p>
+          <h1 className="font-display text-ink mt-3 max-w-[25ch] text-3xl leading-tight font-semibold tracking-tight text-balance md:text-4xl">
+            {post.title}
+          </h1>
+          {post.description && (
+            <p className="text-ink-muted mt-3 max-w-[65ch] text-lg leading-relaxed text-pretty">
+              {post.description}
+            </p>
+          )}
+          {post.tags && post.tags.length > 0 && (
+            <ul className="mt-4 flex flex-wrap gap-1.5">
+              {post.tags.map((tag) => (
+                <li
+                  key={tag}
+                  className="border-line text-ink-muted rounded-chip border px-2 py-0.5 font-mono text-xs"
+                >
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className="border-line mt-10 border-t pt-8">
+            <MDXRemote
+              source={post.content}
+              components={mdxComponents}
+              options={{
+                mdxOptions: {
+                  rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
+                },
+              }}
+            />
+          </div>
+        </article>
+
+        <nav aria-label="More posts" className="border-line mt-16 grid gap-4 border-t pt-8 sm:grid-cols-2">
+          {newer && (
+            <Link href={`/blog/${newer.slug}`} className="focus-ring group">
+              <span className="text-ink-muted block font-mono text-xs">Newer</span>
+              <span className="font-display text-ink group-hover:text-accent mt-1 block text-lg font-semibold tracking-tight transition-colors">
+                {newer.title}
+              </span>
+            </Link>
+          )}
+          {older && (
+            <Link href={`/blog/${older.slug}`} className="focus-ring group sm:text-right">
+              <span className="text-ink-muted block font-mono text-xs">Older</span>
+              <span className="font-display text-ink group-hover:text-accent mt-1 block text-lg font-semibold tracking-tight transition-colors">
+                {older.title}
+              </span>
+            </Link>
+          )}
+        </nav>
+      </main>
+    </>
   );
 }
