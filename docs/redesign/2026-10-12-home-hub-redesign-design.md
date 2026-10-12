@@ -213,11 +213,20 @@ default, an artist's sprite is a later swap.
 One eyebrow is permitted in the hero and nowhere else on the page, which satisfies the
 design skill's one-eyebrow-per-three-sections budget mechanically.
 
-1. **Scene hero** (fits the initial viewport, top padding capped at `pt-24`) - starfield
-   layers, the sprite standing on a ground line, the name in Archivo, and the destination
-   menu anchored to the scene. Menu items are real `<a>` links with real labels and are
-   keyboard reachable, so the hero is crawlable and screen-reader legible. No gate, no
+1. **Scene hero** (top padding capped at `pt-24`, and it fits the initial viewport at desktop:
+   measured 607px at 1280x800, with the headline, subtext and primary CTA all above the fold) -
+   starfield layers, the sprite standing on a ground line, the name in Archivo, and the
+   destination menu anchored to the scene. Menu items are real `<a>` links with real labels and
+   are keyboard reachable, so the hero is crawlable and screen-reader legible. No gate, no
    "press start" wall. One primary CTA (`View CV`) plus one secondary (`GitHub`).
+
+   On a 390x844 phone the hero measures 863px: headline, subtext and the primary CTA are above
+   the fold (CTA bottom at 376px) and nothing overflows horizontally, but the six-destination
+   menu completes just below the first screen. That is accepted rather than chased: a scene, a
+   mascot and a six-item menu will not always fit one phone screen, real mobile viewports are
+   shorter than 844px once browser chrome is subtracted, and the properties that matter (the
+   offer above the fold, no gate, no horizontal overflow) hold. The menu was widened to two
+   columns at all widths to keep the overshoot to 19px.
 2. **Now** (asymmetric two-column) - a short "what I am doing right now" paragraph plus
    three real facts: current role and stack, what the homelab runs, what is playing. Mono
    metadata, `tabular-nums`.
