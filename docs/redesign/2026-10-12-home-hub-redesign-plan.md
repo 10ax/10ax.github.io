@@ -1801,7 +1801,11 @@ export function validateSheet(sheet: SpriteSheet): string[] {
 - [ ] **Step 4: Write `src/sprites/trainer.ts`**
 
 ```ts
-import { TRANSPARENT, type SpriteSheet } from "@/sprites/sheet";
+/*
+ * Relative `.ts` specifier, as in `png.ts`: `scripts/build-sprite.ts` loads this file under
+ * bare Node, which resolves neither the `@/` alias nor an extensionless relative import.
+ */
+import { TRANSPARENT, type SpriteSheet } from "./sheet.ts";
 
 /**
  * The trainer sprite: eight colours plus transparency, two authored frames, and three
@@ -2050,7 +2054,8 @@ describe("scaleRgba", () => {
     expect([...scaled.rgba.subarray(0, 4)]).toEqual([1, 2, 3, 4]);
     expect([...scaled.rgba.subarray(4, 8)]).toEqual([1, 2, 3, 4]);
     expect([...scaled.rgba.subarray(8, 12)]).toEqual([5, 6, 7, 8]);
-    expect([...scaled.rgba.subarray(24, 28)]).toEqual([1, 2, 3, 4]);
+    expect([...scaled.rgba.subarray(16, 20)]).toEqual([1, 2, 3, 4]);
+    expect([...scaled.rgba.subarray(24, 28)]).toEqual([5, 6, 7, 8]);
   });
 
   it("refuses a scale below one", () => {
@@ -2110,7 +2115,13 @@ Expected: FAIL with a resolution error for `@/sprites/png`.
 
 ```ts
 import { deflateSync } from "node:zlib";
-import { TRANSPARENT, type FrameRef, type SpriteSheet, type SpriteState } from "@/sprites/sheet";
+/*
+ * The relative `.ts` specifier is deliberate. `scripts/build-sprite.ts` loads this module
+ * under bare Node (`--experimental-strip-types`), which does not resolve tsconfig `paths`,
+ * so the `@/` alias used elsewhere in the repo cannot be used here. Node also requires the
+ * explicit extension for a relative TypeScript import. Do not "tidy" this back to `@/`.
+ */
+import { TRANSPARENT, type FrameRef, type SpriteSheet, type SpriteState } from "./sheet.ts";
 
 const SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 
