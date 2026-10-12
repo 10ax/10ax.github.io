@@ -2454,7 +2454,7 @@ git commit -m "feat(sprite): render the animated pixel sprite"
 
 **Interfaces:**
 - Consumes: `--star` (Task 1), `motion`.
-- Produces: `<Starfield density?: "sparse" | "dense" className?: string />` — three parallax layers, `aria-hidden`, absolutely positioned inside a `relative` parent. Task 13 places it behind the hero scene.
+- Produces: `<Starfield className?: string />` — three parallax layers, `aria-hidden`, absolutely positioned inside a `relative` parent. There is no `density` prop; the three layers are fixed. Task 15 places it behind the hero scene.
 
 - [ ] **Step 1: Write `src/components/scene/starfield.tsx`**
 
