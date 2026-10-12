@@ -1,62 +1,72 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarBlank, Tag } from "@phosphor-icons/react/dist/ssr";
+import { CalendarBlank } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
+import { Reveal } from "@/components/reveal";
 import { getAllPosts } from "@/lib/posts";
 
 export const metadata: Metadata = {
-  title: "Blog — Francesco Tenace",
+  title: "Blog | Francesco Tenace",
   description: "Notes on engineering, homelab tinkering, and other interests.",
 };
 
 export default async function BlogIndexPage() {
   const posts = await getAllPosts();
+  const [lead, ...rest] = posts;
 
   return (
     <>
       <PageHeader
-        eyebrow="cat ~/blog"
-        title="Blog"
-        description="Notes on engineering, homelab tinkering, and other interests."
+        title="Notes"
+        description="Things I worked out the hard way, written down so the next attempt is shorter."
       />
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
-        {posts.length === 0 ? (
-          <p className="text-sm text-slate-400">No posts yet. Check back soon.</p>
+      <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
+        {!lead ? (
+          <p className="text-ink-muted text-sm">No posts yet. Check back soon.</p>
         ) : (
-          <ul className="flex flex-col gap-4">
-            {posts.map((post) => (
-              <li key={post.slug}>
-                <Link
-                  href={`/blog/${post.slug}`}
-                  className="group block rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition-all hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5"
-                >
-                  <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
-                    <span className="inline-flex items-center gap-1.5">
-                      <CalendarBlank size={14} weight="regular" />
-                      {post.date}
-                    </span>
-                    {post.tags?.map((t) => (
-                      <span
-                        key={t}
-                        className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/70 px-2 py-0.5 font-mono text-[10px] text-slate-300"
-                      >
-                        <Tag size={12} weight="regular" />
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                  <h2 className="text-lg font-semibold text-slate-100 group-hover:text-emerald-300">
-                    {post.title}
-                  </h2>
-                  {post.description && (
-                    <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                      {post.description}
-                    </p>
-                  )}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <Reveal>
+              <Link href={`/blog/${lead.slug}`} className="focus-ring group block max-w-[70ch]">
+                <p className="text-ink-muted tabular inline-flex items-center gap-1.5 font-mono text-xs">
+                  <CalendarBlank size={14} weight="regular" aria-hidden />
+                  {lead.date}
+                </p>
+                <h2 className="font-display text-ink group-hover:text-accent mt-3 text-3xl leading-tight font-semibold tracking-tight transition-colors md:text-4xl">
+                  {lead.title}
+                </h2>
+                {lead.description && (
+                  <p className="text-ink-muted mt-3 text-base leading-relaxed text-pretty">
+                    {lead.description}
+                  </p>
+                )}
+              </Link>
+            </Reveal>
+
+            <ul className="divide-line mt-14 divide-y">
+              {rest.map((post, index) => (
+                <li key={post.slug}>
+                  <Reveal delay={index * 0.04}>
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="focus-ring group grid gap-2 py-6 md:grid-cols-[10rem_1fr]"
+                    >
+                      <p className="text-ink-muted tabular font-mono text-xs md:pt-1">{post.date}</p>
+                      <div>
+                        <h3 className="font-display text-ink group-hover:text-accent text-xl font-semibold tracking-tight transition-colors">
+                          {post.title}
+                        </h3>
+                        {post.description && (
+                          <p className="text-ink-muted mt-2 max-w-[65ch] text-sm leading-relaxed">
+                            {post.description}
+                          </p>
+                        )}
+                      </div>
+                    </Link>
+                  </Reveal>
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </main>
     </>
