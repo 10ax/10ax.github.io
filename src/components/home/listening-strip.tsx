@@ -9,9 +9,9 @@ export type ListeningItem = {
 };
 
 /**
- * Two recent scrobbles as a quiet mono strip. Real data from the build, no invented
- * numbers, and it exists whether or not Last.fm credentials are present because the
- * caller falls back to the static artist list.
+ * Two recent scrobbles as a quiet strip. Real data from the build, no invented numbers, and
+ * it exists whether or not Last.fm credentials are present because the caller falls back to
+ * the static artist list.
  */
 export function ListeningStrip({ tracks }: { tracks: ListeningItem[] }) {
   if (tracks.length === 0) return null;
@@ -20,12 +20,12 @@ export function ListeningStrip({ tracks }: { tracks: ListeningItem[] }) {
     <section className="border-line border-t">
       <div className="mx-auto w-full max-w-[1400px] px-5 py-14 md:px-8">
         <Reveal>
-          <h2 className="text-ink-muted font-mono text-xs tracking-wide uppercase">
+          <h2 className="font-display text-ink text-2xl font-semibold tracking-tight">
             Recently played
           </h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-            {tracks.slice(0, 2).map((track) => (
-              <li key={track.url}>
+            {tracks.slice(0, 2).map((track, index) => (
+              <li key={`${track.url}-${index}`}>
                 <a
                   href={track.url}
                   target="_blank"

@@ -37,20 +37,22 @@ export function LatestWriting({ posts }: { posts: WritingItem[] }) {
             )}
           </Link>
         </Reveal>
-        <ul className="divide-line divide-y">
-          {rest.slice(0, 3).map((post, index) => (
-            <li key={post.slug}>
-              <Reveal delay={0.1 + index * 0.05}>
-                <Link href={`/blog/${post.slug}`} className="focus-ring group block py-4">
-                  <p className="text-ink-muted font-mono text-xs tabular-nums">{post.date}</p>
-                  <h3 className="font-display text-ink group-hover:text-accent mt-1 text-base font-semibold tracking-tight transition-colors">
-                    {post.title}
-                  </h3>
-                </Link>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
+        {rest.length > 0 && (
+          <ul className="divide-line divide-y">
+            {rest.slice(0, 3).map((post, index) => (
+              <li key={post.slug}>
+                <Reveal delay={0.1 + index * 0.05}>
+                  <Link href={`/blog/${post.slug}`} className="focus-ring group block py-4">
+                    <p className="text-ink-muted font-mono text-xs tabular-nums">{post.date}</p>
+                    <h3 className="font-display text-ink group-hover:text-accent mt-1 text-base font-semibold tracking-tight transition-colors">
+                      {post.title}
+                    </h3>
+                  </Link>
+                </Reveal>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

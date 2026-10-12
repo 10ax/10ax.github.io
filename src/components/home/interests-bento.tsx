@@ -4,8 +4,10 @@ import { ArrowUpRight, Broadcast, Disc, GameController, Terminal } from "@phosph
 import { Reveal } from "@/components/reveal";
 
 /**
- * Five interests, five cells, asymmetric 2+3. Two cells carry real visual variation (a
- * photo tile and the accent-tinted tile) so the grid is not five identical text boxes.
+ * Five interests, five cells on a three-column track: the lead music cell spans two
+ * columns and the other four are single cells, so six column-units fill two complete rows
+ * with no empty cell. The starfield tile and the sprite tile are the two cells that carry
+ * real visual variation beyond a text panel.
  */
 export function InterestsBento() {
   return (
@@ -17,7 +19,8 @@ export function InterestsBento() {
       </Reveal>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {/* Wide cell: music, with real album art from the last scrobble. */}
+        {/* Lead cell: music, spanning two columns. A panel with a Disc icon and an arrow,
+            linked to the page fed by the real scrobble feed. */}
         <Reveal className="md:col-span-2">
           <Link
             href="/music"
@@ -39,7 +42,8 @@ export function InterestsBento() {
           </Link>
         </Reveal>
 
-        {/* Tall-ish cell: space. */}
+        {/* Space: a sunken tile with a starfield drawn from the same `--star` token the
+            hero scene uses. */}
         <Reveal delay={0.05}>
           <div className="border-line bg-sunken relative flex h-full flex-col justify-between overflow-hidden rounded-panel border p-6">
             <div
@@ -61,8 +65,7 @@ export function InterestsBento() {
           </div>
         </Reveal>
 
-        {/* Three equal-width cells would be the generic row, so these sit on a 3-column
-            track where one spans two, keeping the rhythm uneven. */}
+        {/* Second row, first cell: the Game Boy era, a plain panel. */}
         <Reveal delay={0.1}>
           <div className="border-line bg-panel flex h-full flex-col justify-between rounded-panel border p-6">
             <GameController size={20} weight="regular" aria-hidden className="text-accent" />
@@ -78,6 +81,7 @@ export function InterestsBento() {
           </div>
         </Reveal>
 
+        {/* Second row, second cell: Linux, linked to the homelab. */}
         <Reveal delay={0.15}>
           <Link
             href="/homelab"
@@ -96,13 +100,15 @@ export function InterestsBento() {
           </Link>
         </Reveal>
 
-        <Reveal delay={0.2} className="md:col-span-2">
+        {/* Second row, third cell: writing, linked to the blog. The site's sprite sits in
+            the tile's top-right corner as the cell's visual variation. */}
+        <Reveal delay={0.2}>
           <Link
             href="/blog"
             className="focus-ring group border-line bg-panel hover:border-accent relative flex h-full min-h-[180px] flex-col justify-end overflow-hidden rounded-panel border transition-colors"
           >
-            {/* A real image slot, not a drawn rectangle: swap the file when the photograph
-                exists. `unoptimized` because the export has no image optimiser. */}
+            {/* The site's own sprite, not a drawn rectangle. `unoptimized` because the
+                export has no image optimiser. */}
             <Image
               src="/sprites/trainer-idle@4x.png"
               alt=""
