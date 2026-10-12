@@ -4,6 +4,7 @@ import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { getSiteUrlObject } from "@/lib/site-url";
+import { themeInitScript } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${archivo.variable} ${silkscreen.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        {/*
+          Runs before paint so the first frame is already the right theme. Fixed string,
+          no interpolation: see `themeInitScript` for why.
+          eslint-disable-next-line react/no-danger -- script text, not user input
+        */}
+        <script
+          dangerouslySetInnerHTML={{ __html: themeInitScript() }}
+        />
+      </head>
       <body
         className="bg-surface text-ink flex min-h-full flex-col font-sans"
         suppressHydrationWarning
