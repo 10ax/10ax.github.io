@@ -2387,7 +2387,7 @@ git commit -m "feat(sprite): compile the grid to PNG strips with no image depend
 
 **Interfaces:**
 - Consumes: the strips (Task 10), the sprite CSS classes (Task 9).
-- Produces: `<Sprite state="idle" | "walk" | "interact" label: string className?: string />`. Task 13 (the scene hero) renders it with `state="idle"`.
+- Produces: `<Sprite state?: "idle" | "walk" | "interact" className?: string />`. There is no `label` prop: the sprite is decorative, so it carries `aria-hidden` and any meaning it has in the hero is stated in adjacent text. Task 13 (the scene hero) renders it with `state="idle"`.
 
 - [ ] **Step 1: Write `src/components/scene/sprite.tsx`**
 
