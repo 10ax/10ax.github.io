@@ -176,14 +176,19 @@ Deliverable of a separate task; the site never blocks on it.
 
 - Authoring format: a committed text pixel grid (one character per pixel) plus a palette
   of six to eight GBA-plausible colours, held in `src/sprites/*.ts`.
-- Build step: `scripts/build-sprite.mjs` compiles each grid to
-  `public/sprites/<name>@1x.png`, `@2x.png`, `@4x.png` at integer scales only.
-- Cell size fixed at 32x32 (32x40 if the character needs the height). Rows are, in order:
-  `idle` (2 frames), `walk` (4 frames), `interact` (2 frames).
+- Build step: `scripts/build-sprite.ts` compiles each grid to one horizontal strip PNG per
+  state at 1x and 4x, under `public/sprites/`, at integer scales only. A strip is what CSS
+  `steps()` animates directly, so the component contains no slicing logic.
+- Cell size fixed at 16x24. Rendered at 4x that is 64x96, which is the hero size. Rows are,
+  in order: `idle` (2 frames), `walk` (4 frames), `interact` (2 frames), eight cells in
+  total. Two frames are authored by hand; `walk` and `interact` derive their extra cells
+  from those two plus small `dx`/`dy` offsets, which is how sprites this size animate and
+  keeps the art reviewable at two grids instead of eight.
 - Rendering: `image-rendering: pixelated`, no smoothing, no filters, no fractional
   scaling, `width`/`height` reserved in CSS so there is no layout shift.
-- Light mode gets a mono or duotone variant derived from the same grid, not a redrawn
-  asset.
+- Both themes serve the same art. The palette carries its own dark outline, so it reads on
+  the light surface as well; a separate mono or duotone pass is a later lever, not part of
+  this change.
 - `prefers-reduced-motion` freezes the sprite on `idle` frame 0.
 - Accessibility: the sprite is decorative, so it is `aria-hidden` with an empty `alt` on
   any `img`, and the meaning it carries in the hero is also present as text.
@@ -291,7 +296,7 @@ New:
 - `src/components/scene/starfield.tsx`, `scene/sprite.tsx`, `scene/hub-menu.tsx`
 - `src/components/reveal.tsx`, `spotlight-card.tsx`, `magnetic-cta.tsx`, `pixel-label.tsx`
 - `src/components/reading-progress.tsx`, `lightbox.tsx`
-- `src/sprites/*.ts` and `scripts/build-sprite.mjs`
+- `src/sprites/*.ts` and `scripts/build-sprite.ts`
 - `src/app/cv/page.tsx`, `src/app/not-found.tsx`
 
 Changed: `layout.tsx` (tokens, fonts, theme script, skip link), `globals.css` (token layer,
@@ -388,7 +393,7 @@ Each slice ends green on all four commands and is reviewable on its own.
 
 1. **Foundations** - tokens, fonts, Phosphor migration, theme toggle with the pre-paint
    script, skip link, header, footer, `not-found`, grain. Nothing is recomposed yet.
-2. **Sprite** - grids, palette, `scripts/build-sprite.mjs`, generated PNGs, the sprite test.
+2. **Sprite** - grids, palette, `scripts/build-sprite.ts`, generated PNGs, the sprite test.
 3. **Home hub** - scene hero, menu, starfield, then sections 2 to 7.
 4. **`/cv`** - data moves to `src/lib/cv-data.ts`, the route, the JSON-LD split, sitemap and
    its test.
