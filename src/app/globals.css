@@ -142,3 +142,46 @@ body {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/*
+ * Sprite strips. One keyframe per state; the distance is the strip width at 4x scale
+ * (cell 16x24 rendered at 4x, so 64x96 per cell). `steps()` holds each frame, which is
+ * what a pixel sprite needs: interpolation would smear it.
+ */
+@keyframes sprite-idle {
+  to {
+    background-position-x: -128px;
+  }
+}
+
+@keyframes sprite-walk {
+  to {
+    background-position-x: -256px;
+  }
+}
+
+@keyframes sprite-interact {
+  to {
+    background-position-x: -128px;
+  }
+}
+
+.sprite-idle {
+  animation: sprite-idle 1.2s steps(2) infinite;
+}
+
+.sprite-walk {
+  animation: sprite-walk 0.6s steps(4) infinite;
+}
+
+.sprite-interact {
+  animation: sprite-interact 0.9s steps(2) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sprite-idle,
+  .sprite-walk,
+  .sprite-interact {
+    animation: none;
+  }
+}
