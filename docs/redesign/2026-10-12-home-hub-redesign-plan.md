@@ -872,14 +872,22 @@ import { ThemeToggle } from "@/components/theme-toggle";
  * `aria-current`, which is also what the styling keys off, so the visual state and the
  * announced state cannot drift apart.
  *
- * The drawer remembers the pathname it was opened at rather than a bare boolean, so any
- * navigation (a drawer link, the brand, back/forward) closes it with no effect: the
- * remembered path simply stops matching. A `setOpen(false)` effect would trip this repo's
- * `react-hooks/set-state-in-effect` rule, which is the same trap Task 2's toggle hit.
+ * The drawer remembers the pathname it was opened at rather than a bare boolean. When the
+ * path changes, the remembered path is reset during render (the documented React pattern
+ * for resetting state when an input changes), so the drawer closes on any navigation -
+ * a drawer link, the brand, and back/forward alike. That reset is a guarded render-phase
+ * state adjustment rather than a `setOpen(false)` effect, which would trip this repo's
+ * `react-hooks/set-state-in-effect` rule, and it is also why the remembered path cannot
+ * simply be left to stop matching: history returning to that path would reopen the drawer.
  */
 export function SiteHeader() {
   const pathname = usePathname();
   const [openAt, setOpenAt] = useState<string | null>(null);
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (prevPath !== pathname) {
+    setPrevPath(pathname);
+    setOpenAt(null);
+  }
   const open = openAt !== null && openAt === pathname;
 
   return (
