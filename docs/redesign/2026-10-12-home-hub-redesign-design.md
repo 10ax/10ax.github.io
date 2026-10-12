@@ -439,6 +439,47 @@ Each slice ends green on all four commands and is reviewable on its own.
 - **`output: "export"` plus an experimental flag.** View transitions are only kept if
   check 1 in section 10 passes.
 
+### Audit record, 2026-10-12
+
+- **Eyebrow counts per route** (`grep -rc "<PixelLabel" src/app src/components`): the hub
+  `/` has one (`whoami`, the hero); `/music`, `/homelab` and `/cv` each render one through
+  `PageHeader` (`now playing`, `ssh homelab`, `the record`); `/cv` carries a second, a
+  functional `contact` label above the contact list; the blog index, the post page and the
+  gallery have none; the 404 has one (`404`). Every page is inside the
+  one-per-three-sections budget, and no page puts an eyebrow above every heading. (The
+  hand-off that prompted this audit listed the 404 as zero and `/cv` as one; the code says
+  otherwise, and the code is what is recorded here.)
+- **Em-dash sweep:** zero in `src/app` and `src/components` after fixing the two route
+  titles (`Music — Francesco Tenace` and `Homelab — Francesco Tenace` become `... | ...`).
+  The three hits in `src/lib/posts.ts` are JSDoc, not user-visible, and are untouched; the
+  three published posts keep theirs, as agreed.
+- **Reduced motion:** with the preference emulated, `document.getAnimations().length === 0`
+  on `/`, `/cv/`, `/homelab/`, `/blog/<slug>/`, `/music/` and `/gallery/`, against 8 live
+  animations on `/` without it. That covers the starfield, both sprite strips, the reveals,
+  the spotlight cards, the experience stack, the magnetic CTA and the reading-progress bar.
+  The view-transition pseudos are removed with `animation: none !important`, not merely
+  zeroed to `0s`, so the claim "no motion" is literal.
+- **Both themes:** all eight exported entry points (`/`, `/cv/`, `/blog/`, `/blog/<slug>/`,
+  `/gallery/`, `/music/`, `/homelab/`, `/404.html`) opened against the built export in light
+  and dark. Every one resolves `--surface` to `#f7f7f5`/`#08090b`, repaints the body, and has
+  a real `<h1>`; measured on the exported site, not on the token values.
+- **View transitions:** enabled and kept. The export builds with the flag on, the transition
+  plays on the exported site, and the persistent header is frozen for its duration; the
+  evidence and the exact removal steps are in `docs/TROUBLESHOOTING.md`.
+- **Three-equal-card rows:** none ship. The two `md:grid-cols-3` tracks that do hold three
+  cells are the homelab `STACK` strip (dt/dd facts grouped by hairlines, no card chrome) and
+  the six-cell homelab services grid; the CV skills bento and the interests bento each carry
+  five cells with an explicit `md:col-span-2`.
+- **Other mechanical checks:** no scroll listeners; no Lucide imports (the icon family is
+  Phosphor plus Simple Icons in `brand-icon.tsx`); no hand-rolled `<path d=` outside
+  `brand-icon.tsx`; no hardcoded colour outside the token block in `globals.css`, the
+  `themeColor` metadata in `layout.tsx`, and the two Satori OpenGraph handlers, which cannot
+  read CSS custom properties.
+- **OpenGraph cards keep the pre-redesign palette.** The two `opengraph-image.tsx` handlers
+  paint the old slate/emerald hexes because Satori cannot read `--surface`/`--accent`.
+  Restyling them means hardcoding the new token values in a second place; the redesign left
+  them as they were. Recorded, not changed.
+
 ## 13. Waiting on the owner
 
 Nothing here blocks slice 1. These arrive later and each costs one file or one array:

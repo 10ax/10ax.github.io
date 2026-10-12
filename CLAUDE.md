@@ -16,12 +16,13 @@ mistake surfaces as a failed `pnpm run build` rather than a runtime error.
 | Next.js | `16.2.6` (App Router, Turbopack, `output: "export"`) |
 | React | `19.2.4` |
 | TypeScript | `^5`, `strict: true`, path alias `@/*` → `./src/*` |
-| Node | **20** — both workflows pin it; local machines may be newer |
+| Node | **22** — read from `.node-version` by both workflows; local machines may differ |
 | Package manager | pnpm, with a committed `pnpm-lock.yaml` |
-| Styling | Tailwind CSS v4 via `@tailwindcss/postcss` |
+| Styling | Tailwind CSS v4 via `@tailwindcss/postcss`, with a light/dark token layer |
 | MDX | `gray-matter` frontmatter + `next-mdx-remote/rsc` |
 | Highlighting | `rehype-pretty-code` + `shiki` |
-| Icons | `lucide-react`, `simple-icons` |
+| Animation | `motion` (`motion/react`); every non-essential surface sits behind `useReducedMotion` |
+| Icons | `@phosphor-icons/react` (the one family), `simple-icons` via `brand-icon.tsx` |
 | Tests | Vitest `^3.2.7` — the pin predates Node 22 and pnpm; nothing blocks a bump now, but nobody has done it |
 
 ## Commands
@@ -33,10 +34,12 @@ pnpm run lint              # eslint
 pnpm exec tsc --noEmit          # type-check
 pnpm test                  # vitest run  (same as: pnpm exec vitest run)
 pnpm run build             # static export into ./out/
+pnpm run build:sprite      # regenerate public/sprites/*.png from the pixel grids
 ```
 
 All five of the non-dev commands must pass before anything is committed. They are exactly
-what `.github/workflows/ci.yml` runs, in that order.
+what `.github/workflows/ci.yml` runs, in that order. `pnpm run build:sprite` is a codegen
+step, not a gate: run it after editing a grid and commit the PNGs it writes.
 
 ## Invariants
 
@@ -60,6 +63,18 @@ what `.github/workflows/ci.yml` runs, in that order.
   *shared secret* must never appear.
 - **`content/blog/*.mdx` frontmatter is parsed at build time.** One malformed file fails
   the whole build — `getAllPosts()` reads every post in a single `Promise.all`.
+- **The sprite is generated, never hand-edited.** `public/sprites/*.png` are compiled from
+  `src/sprites/trainer.ts` by `pnpm run build:sprite`; `validateSheet` refuses a grid that
+  does not match the contract. Change the grid and re-run the script in the same commit —
+  and if the frame count or cell size changes, move the strip widths hardcoded in
+  `src/app/globals.css` (`128px` for `idle`/`interact`, `256px` for `walk`) with it.
+- **Colour lives in the token block.** Every colour in a component is a token utility; the
+  only raw values are the `:root` / `[data-theme]` blocks in `src/app/globals.css`, the
+  `themeColor` metadata in `layout.tsx`, and the two Satori OpenGraph handlers, which cannot
+  read custom properties. `tests/design-tokens.test.ts` keeps the two themes in parity.
+- **No em-dash or en-dash in a user-visible string.** The design brief bans them as template
+  chrome; the three published posts are the recorded exception. `tests/source-prose.test.ts`
+  enforces it over `src/app` and `src/components`.
 
 ## Conventions visible in the code
 
@@ -67,8 +82,9 @@ what `.github/workflows/ci.yml` runs, in that order.
 - `import type` for type-only imports, kept separate from runtime imports.
 - JSDoc on exported APIs; comments explain *why*, not *what*.
 - Route files export a `metadata` object; page components are the default export.
-- Page content is declared as a typed `const` array at the top of the file
-  (`SERVICES`, `PHOTOS`, `NAV_LINKS`, `CV_DATA`) and mapped in the JSX below.
+- Shared facts are declared once and imported: `NAV_LINKS` lives in `src/lib/nav.ts` and
+  `CV_DATA` in `src/lib/cv-data.ts`. Per-page content stays a typed `const` at the top of
+  the file (`SERVICES`, `PHOTOS`) and is mapped in the JSX below.
 - Tailwind classes only — there are no CSS modules and no styled-components.
 - Tests live in `tests/*.test.ts`, import through the `@/` alias, and are
   *characterisation* tests: they pin current behaviour, including behaviour that is
@@ -91,6 +107,10 @@ what `.github/workflows/ci.yml` runs, in that order.
   throwing again. Never share a malformed fixture between two tests.
 - Unquoted frontmatter dates carrying a time and zone offset shift into UTC and can move
   by a day. Write `date: 2026-05-31` and nothing more.
+- Tailwind v4 scans the whole repository as text, so class-shaped syntax in prose — the
+  design docs, the task briefs under `.superpowers/`, `CLAUDE.md` — is compiled into the
+  shipped CSS as dead utilities. `src/app/globals.css` excludes those paths with
+  `@source not`; exclude any new prose directory the same way.
 
 ## What not to touch
 

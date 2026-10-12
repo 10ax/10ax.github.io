@@ -322,6 +322,23 @@ a predictable static export is the invariant this feature was conditional on.
 
 ---
 
+## The redesign's moving parts
+
+- **The sprite is generated, not hand-edited.** `public/sprites/*.png` are compiled from
+  `src/sprites/trainer.ts` by `pnpm run build:sprite`. Editing a PNG by hand is lost work:
+  edit the grid, re-run the script, commit both. The script refuses to write a sheet whose
+  grid fails `validateSheet`.
+- **The three states are one strip each.** A strip's width is its frame count times the
+  cell width at 4x, and the keyframes in `globals.css` hardcode those widths (128px for
+  `idle` and `interact`, 256px for `walk`). Changing the frame count or the cell size means
+  changing the keyframes in the same commit.
+- **The CV lives on `/cv`.** The home page is a hub. If a link to the CV is missing
+  somewhere it used to be, that is the expected shape of the change, not a regression.
+- **`/cv` is pinned in `tests/metadata-routes.test.ts`** as one of six static routes. That
+  test is deliberately brittle: adding a route without adding it to the sitemap fails it.
+
+---
+
 ## Known issues
 
 Things that are broken, stale, or half-finished as of `cd2f189`. None of them were fixed
