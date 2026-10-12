@@ -111,6 +111,13 @@ second accent, tinted shadows only (`box-shadow` carries the surface hue, never 
 black). Both themes must hold WCAG AA for body text and AAA for hero copy; the final
 values are contrast-checked during slice 1 against the real rendered output.
 
+Precedence is part of the contract: a visitor's explicit choice, stored by the toggle and
+written to `data-theme`, always beats the system preference. The system-preference block is
+only the fallback for a visitor who has not chosen, so `:root` and `[data-theme="..."]`
+have equal specificity and the fallback must appear first in source order. A toggle that
+cannot override a dark OS preference is a broken toggle, and no test in this suite would
+catch it.
+
 The existing `themeColor` in `layout.tsx` (`#020617`) is replaced with the new
 `--surface` per theme, emitted through `viewport`.
 
