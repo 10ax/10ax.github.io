@@ -96,14 +96,14 @@ One strategy, one accent, locked page-wide.
 | Token | Dark | Light | Use |
 |---|---|---|---|
 | `--surface` | `#08090b` | `#f7f7f5` | page base. Cool off-black, warm off-white. Never `#000` or `#fff` |
-| `--surface-raised` | `#0f1116` | `#ffffff` | panels, cards, bento cells |
-| `--surface-sunken` | `#050608` | `#efefe9` | wells, code blocks |
+| `--surface-raised` (`--panel`) | `#0f1116` | `#fdfcfa` | panels, cards, bento cells. The light value is deliberately not `#ffffff` |
+| `--surface-sunken` (`--sunken`) | `#050608` | `#eaeae4` | wells, code blocks |
 | `--line` | `rgb(255 255 255 / .08)` | `rgb(8 9 11 / .10)` | hairlines and borders |
 | `--line-strong` | `rgb(255 255 255 / .16)` | `rgb(8 9 11 / .18)` | pixel-panel borders |
-| `--text-primary` | `#e8eaed` | `#14161a` | body and headings |
-| `--text-muted` | `#8b929c` | `#5b626b` | metadata, captions |
+| `--ink` | `#e8eaed` | `#14161a` | body and headings |
+| `--ink-muted` | `#8b929c` | `#5b626b` | metadata, captions |
 | `--accent` | `#3fbf94` | `#106b50` | the single accent, emerald family, desaturated |
-| `--accent-contrast` | `#04231a` | `#ffffff` | text on an accent fill |
+| `--accent-ink` | `#04231a` | `#fdfcfa` | text on an accent fill |
 | `--star` | `rgb(255 255 255 / .85)` | `rgb(8 9 11 / .55)` | starfield particles |
 
 Rules: no purple, no gradient text, no neon outer glow, no pure black, no pure white, no
