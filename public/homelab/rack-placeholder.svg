@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Placeholder for the homelab rack photograph">
+  <rect width="800" height="600" fill="#0f1116"/>
+  <rect x="80" y="120" width="640" height="80" rx="8" fill="#050608" stroke="#2e5d4f" stroke-width="2"/>
+  <rect x="80" y="230" width="640" height="80" rx="8" fill="#050608" stroke="#2e5d4f" stroke-width="2"/>
+  <rect x="80" y="340" width="640" height="80" rx="8" fill="#050608" stroke="#2e5d4f" stroke-width="2"/>
+</svg>
