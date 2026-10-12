@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calendar, Tag } from "lucide-react";
+import { CalendarBlank, Tag } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { getAllPosts } from "@/lib/posts";
 
@@ -32,7 +32,7 @@ export default async function BlogIndexPage() {
                 >
                   <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
                     <span className="inline-flex items-center gap-1.5">
-                      <Calendar className="h-3.5 w-3.5" />
+                      <CalendarBlank size={14} weight="regular" />
                       {post.date}
                     </span>
                     {post.tags?.map((t) => (
@@ -40,7 +40,7 @@ export default async function BlogIndexPage() {
                         key={t}
                         className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/70 px-2 py-0.5 font-mono text-[10px] text-slate-300"
                       >
-                        <Tag className="h-3 w-3" />
+                        <Tag size={12} weight="regular" />
                         {t}
                       </span>
                     ))}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypePrettyCode, { type Options as PrettyCodeOptions } from "rehype-pretty-code";
-import { ArrowLeft, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, CalendarBlank, Tag } from "@phosphor-icons/react/dist/ssr";
 import { getAllPosts, getPostBySlug } from "@/lib/posts";
 
 const prettyCodeOptions: PrettyCodeOptions = {
@@ -115,13 +115,13 @@ export default async function BlogPostPage({
         href="/blog"
         className="inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-emerald-300"
       >
-        <ArrowLeft className="h-4 w-4" />
+        <ArrowLeft size={16} weight="regular" />
         Back to blog
       </Link>
       <article className="mt-6">
         <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
           <span className="inline-flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" />
+            <CalendarBlank size={14} weight="regular" />
             {post.date}
           </span>
           {post.tags?.map((t) => (
@@ -129,7 +129,7 @@ export default async function BlogPostPage({
               key={t}
               className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/70 px-2 py-0.5 font-mono text-[10px] text-slate-300"
             >
-              <Tag className="h-3 w-3" />
+              <Tag size={12} weight="regular" />
               {t}
             </span>
           ))}

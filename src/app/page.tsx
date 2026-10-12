@@ -1,18 +1,19 @@
+import type { Icon } from "@phosphor-icons/react";
 import {
-  Mail,
-  Phone,
-  MapPin,
-  ExternalLink,
-  Calendar,
-  Code,
-  Server,
-  Music,
-  Languages,
-  GraduationCap,
-  Download,
-  GitBranch,
+  ArrowSquareOut,
   Briefcase,
-} from "lucide-react";
+  CalendarBlank,
+  Code,
+  DownloadSimple,
+  EnvelopeSimple,
+  GitBranch,
+  GraduationCap,
+  HardDrives,
+  MapPin,
+  MusicNotes,
+  Phone,
+  Translate,
+} from "@phosphor-icons/react/dist/ssr";
 
 type Skill = { name: string; yrs: string; category: string };
 type Experience = {
@@ -132,11 +133,11 @@ const CV_DATA = {
     "Playing guitar and composing music. Retro-gaming, Sci-fi literature, and cooking. Self-hosting a Proxmox/Docker home lab for personal services and CI/CD testing.",
 };
 
-const CATEGORY_ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  Backend: Server,
+const CATEGORY_ICON: Record<string, Icon> = {
+  Backend: HardDrives,
   Frontend: Code,
-  DevOps: Server,
-  Cloud: Server,
+  DevOps: HardDrives,
+  Cloud: HardDrives,
   Tools: Code,
 };
 
@@ -145,14 +146,14 @@ function SectionCard({
   title,
   children,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: Icon;
   title: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 shadow-sm transition-colors hover:border-slate-700">
       <div className="mb-4 flex items-center gap-2">
-        <Icon className="h-5 w-5 text-emerald-400" />
+        <Icon size={20} weight="regular" className="text-emerald-400" />
         <h2 className="text-lg font-semibold tracking-tight text-slate-100">{title}</h2>
       </div>
       {children}
@@ -166,7 +167,7 @@ function ContactLink({
   label,
 }: {
   href: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: Icon;
   label: string;
 }) {
   return (
@@ -174,7 +175,7 @@ function ContactLink({
       href={href}
       className="group inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-sm text-slate-300 transition-all hover:border-emerald-400 hover:text-emerald-300"
     >
-      <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
+      <Icon size={16} weight="regular" className="transition-transform group-hover:scale-110" />
       <span>{label}</span>
     </a>
   );
@@ -196,11 +197,11 @@ function ExperienceCard({ exp }: { exp: Experience }) {
     <article className="group relative rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition-all hover:border-emerald-500/50 hover:shadow-lg hover:shadow-emerald-500/5">
       <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400">
         <span className="inline-flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5" />
+          <CalendarBlank size={14} weight="regular" />
           {exp.period}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <MapPin className="h-3.5 w-3.5" />
+          <MapPin size={14} weight="regular" />
           {exp.location}
         </span>
       </div>
@@ -287,7 +288,7 @@ export default function Home() {
             <div className="flex flex-wrap gap-2">
               <ContactLink
                 href={`mailto:${profile.email}`}
-                icon={Mail}
+                icon={EnvelopeSimple}
                 label={profile.email}
               />
               <ContactLink
@@ -303,16 +304,16 @@ export default function Home() {
                 href="#"
                 className="inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-slate-950 transition-all hover:bg-emerald-400 hover:shadow-lg hover:shadow-emerald-500/30"
               >
-                <Download className="h-4 w-4" />
+                <DownloadSimple size={16} weight="regular" />
                 Download CV
               </a>
               <a
                 href="https://github.com/10ax/10ax.github.io"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-700 px-5 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:border-slate-500 hover:bg-slate-800"
               >
-                <GitBranch className="h-4 w-4" />
+                <GitBranch size={16} weight="regular" />
                 GitHub
-                <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+                <ArrowSquareOut size={14} weight="regular" className="opacity-60" />
               </a>
             </div>
           </div>
@@ -331,7 +332,7 @@ export default function Home() {
                   return (
                     <div key={category}>
                       <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        <Icon className="h-3.5 w-3.5" />
+                        <Icon size={14} weight="regular" />
                         {category}
                       </div>
                       <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
@@ -345,7 +346,7 @@ export default function Home() {
               </div>
             </SectionCard>
 
-            <SectionCard icon={Languages} title="Languages">
+            <SectionCard icon={Translate} title="Languages">
               <ul className="flex flex-col gap-2">
                 {profile.languages.map((l) => (
                   <li
@@ -369,15 +370,15 @@ export default function Home() {
                 {education.institution}
               </p>
               <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-slate-400">
-                <Calendar className="h-3.5 w-3.5" />
+                <CalendarBlank size={14} weight="regular" />
                 {education.period}
               </p>
             </SectionCard>
 
-            <SectionCard icon={Music} title="Hobbies & Home Lab">
+            <SectionCard icon={MusicNotes} title="Hobbies & Home Lab">
               <p className="text-sm leading-relaxed text-slate-300">{hobbies}</p>
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-xs text-emerald-300">
-                <Server className="h-3.5 w-3.5" />
+                <HardDrives size={14} weight="regular" />
                 Proxmox · Docker · CI/CD
               </div>
             </SectionCard>
@@ -386,7 +387,7 @@ export default function Home() {
           {/* Right column */}
           <section className="lg:col-span-2">
             <div className="mb-4 flex items-center gap-2">
-              <Briefcase className="h-5 w-5 text-emerald-400" />
+              <Briefcase size={20} weight="regular" className="text-emerald-400" />
               <h2 className="text-lg font-semibold tracking-tight text-slate-100">
                 Professional Experience
               </h2>

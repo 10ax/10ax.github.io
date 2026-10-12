@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Music } from "lucide-react";
+import { MusicNotes } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { TrackList, type LastFmTrack } from "@/components/track-list";
 
@@ -72,7 +72,7 @@ export default async function MusicPage() {
                 className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
               >
                 <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4 text-emerald-400" />
+                  <MusicNotes size={16} weight="regular" className="text-emerald-400" />
                   <h2 className="text-sm font-semibold text-slate-100">{a.name}</h2>
                 </div>
                 <p className="mt-1 text-sm text-slate-400">{a.note}</p>

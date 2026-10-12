@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Music, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowSquareOut, MusicNotes, Spinner } from "@phosphor-icons/react";
 
 export type LastFmImage = { size: string; "#text": string };
 export type LastFmTrack = {
@@ -111,7 +111,11 @@ export function TrackList({ initialTracks }: { initialTracks: LastFmTrack[] }) {
                         unoptimized
                       />
                     ) : (
-                      <Music className="absolute inset-0 m-auto h-6 w-6 text-slate-600" />
+                      <MusicNotes
+                        size={24}
+                        weight="regular"
+                        className="absolute inset-0 m-auto text-slate-600"
+                      />
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -123,7 +127,11 @@ export function TrackList({ initialTracks }: { initialTracks: LastFmTrack[] }) {
                       {isNow ? "▶ now playing" : t.date?.["#text"] ?? ""}
                     </p>
                   </div>
-                  <ExternalLink className="h-3.5 w-3.5 shrink-0 self-start text-slate-600" />
+                  <ArrowSquareOut
+                    size={14}
+                    weight="regular"
+                    className="shrink-0 self-start text-slate-600"
+                  />
                 </a>
               </li>
             );
@@ -134,7 +142,7 @@ export function TrackList({ initialTracks }: { initialTracks: LastFmTrack[] }) {
       <div ref={sentinelRef} className="mt-8 flex justify-center py-6 text-sm text-slate-500">
         {loading ? (
           <span className="inline-flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Spinner size={16} weight="regular" className="animate-spin" />
             Loading more…
           </span>
         ) : done ? (

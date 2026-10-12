@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import type { Icon } from "@phosphor-icons/react";
 import {
-  Server,
+  ArrowSquareOut,
+  Broadcast,
   Cpu,
-  HardDrive,
+  Cube,
+  DownloadSimple,
   GitBranch,
-  ExternalLink,
-  type LucideIcon,
-  Shield,
-  Home,
-  Network,
-  Box,
-  Radio,
-  Download,
-} from "lucide-react";
+  GlobeSimple,
+  HardDrives,
+  House,
+  ShieldCheck,
+} from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { BrandIcon } from "@/components/brand-icon";
 
@@ -29,15 +28,15 @@ type Service = {
   tags: string[];
   url?: string;
   iconSlug?: string;
-  fallbackIcon: LucideIcon;
+  fallbackIcon: Icon;
 };
 
 const REPO_URL = "https://github.com/10ax/docker";
 
 const STACK = [
-  { icon: Server, label: "Host", value: "Odroid HC4 · Arch Linux" },
+  { icon: HardDrives, label: "Host", value: "Odroid HC4 · Arch Linux" },
   { icon: Cpu, label: "Container runtime", value: "Docker + Compose" },
-  { icon: HardDrive, label: "Storage", value: "Unified /data volume" },
+  { icon: HardDrives, label: "Storage", value: "Unified /data volume" },
 ];
 
 const SERVICES: Service[] = [
@@ -48,7 +47,7 @@ const SERVICES: Service[] = [
     tags: ["dns", "native"],
     url: "https://adguard.com/adguard-home.html",
     iconSlug: "adguard",
-    fallbackIcon: Shield,
+    fallbackIcon: ShieldCheck,
   },
   {
     name: "Home Assistant",
@@ -57,14 +56,14 @@ const SERVICES: Service[] = [
     tags: ["iot", "automation"],
     url: "https://www.home-assistant.io/",
     iconSlug: "homeassistant",
-    fallbackIcon: Home,
+    fallbackIcon: House,
   },
   {
     name: "Matter Bridge",
     description:
       "Matter server compose project bridging Matter devices into Home Assistant. Operational data kept on the host.",
     tags: ["iot", "matter"],
-    fallbackIcon: Radio,
+    fallbackIcon: Broadcast,
   },
   {
     name: "Nginx Proxy Manager",
@@ -73,7 +72,7 @@ const SERVICES: Service[] = [
     tags: ["network", "tls"],
     url: "https://nginxproxymanager.com/",
     iconSlug: "nginx",
-    fallbackIcon: Network,
+    fallbackIcon: GlobeSimple,
   },
   {
     name: "Portainer CE",
@@ -81,7 +80,7 @@ const SERVICES: Service[] = [
     tags: ["ops"],
     url: "https://www.portainer.io/",
     iconSlug: "portainer",
-    fallbackIcon: Box,
+    fallbackIcon: Cube,
   },
   {
     name: "arr-stack",
@@ -89,7 +88,7 @@ const SERVICES: Service[] = [
       "Prowlarr (indexer), Lidarr (music collection manager) and qBittorrent sharing a unified /data volume.",
     tags: ["media", "automation"],
     iconSlug: "qbittorrent",
-    fallbackIcon: Download,
+    fallbackIcon: DownloadSimple,
   },
 ];
 
@@ -115,9 +114,9 @@ export default function HomelabPage() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm text-slate-200 transition-colors hover:border-emerald-500/60 hover:text-emerald-300"
           >
-            <GitBranch className="h-4 w-4" />
+            <GitBranch size={16} weight="regular" />
             10ax/docker
-            <ExternalLink className="h-3.5 w-3.5 opacity-60" />
+            <ArrowSquareOut size={14} weight="regular" className="opacity-60" />
           </a>
         </div>
         <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -126,7 +125,7 @@ export default function HomelabPage() {
               key={label}
               className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
             >
-              <Icon className="h-5 w-5 text-emerald-400" />
+              <Icon size={20} weight="regular" className="text-emerald-400" />
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500">
                   {label}
@@ -155,7 +154,7 @@ export default function HomelabPage() {
                         {s.iconSlug ? (
                           <BrandIcon slug={s.iconSlug} className="h-5 w-5" />
                         ) : (
-                          <Fallback className="h-5 w-5 text-emerald-400" />
+                          <Fallback size={20} weight="regular" className="text-emerald-400" />
                         )}
                       </div>
                       <h3 className="text-base font-semibold text-slate-100">
@@ -170,7 +169,7 @@ export default function HomelabPage() {
                         aria-label={`${s.name} homepage`}
                         className="text-slate-500 transition-colors hover:text-emerald-300"
                       >
-                        <ExternalLink className="h-4 w-4" />
+                        <ArrowSquareOut size={16} weight="regular" />
                       </a>
                     )}
                   </div>
