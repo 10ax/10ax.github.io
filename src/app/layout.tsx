@@ -3,6 +3,7 @@ import { Archivo, Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SkipLink } from "@/components/skip-link";
 import { getSiteUrlObject } from "@/lib/site-url";
 import { themeInitScript } from "@/lib/theme";
 
@@ -89,6 +90,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <div className="grain" aria-hidden="true" />
+        <SkipLink />
         <SiteHeader />
         {children}
         <SiteFooter />

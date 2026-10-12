@@ -32,7 +32,7 @@ export default function GalleryPage() {
         title="Gallery"
         description="A collection of photos. Drop images into /public/gallery/ and list them in app/gallery/page.tsx."
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {PHOTOS.map((photo, i) => (
             <figure

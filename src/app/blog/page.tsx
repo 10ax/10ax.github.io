@@ -19,7 +19,7 @@ export default async function BlogIndexPage() {
         title="Blog"
         description="Notes on engineering, homelab tinkering, and other interests."
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
         {posts.length === 0 ? (
           <p className="text-sm text-slate-400">No posts yet. Check back soon.</p>
         ) : (

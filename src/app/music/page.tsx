@@ -61,7 +61,7 @@ export default async function MusicPage() {
             : "A short list of artists in heavy rotation. Set NEXT_PUBLIC_LASTFM_API_KEY and NEXT_PUBLIC_LASTFM_USER to show live scrobbles."
         }
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
         {initial && initial.length > 0 ? (
           <TrackList initialTracks={initial} />
         ) : (

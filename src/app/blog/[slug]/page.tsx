@@ -110,7 +110,7 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
+    <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
       <Link
         href="/blog"
         className="inline-flex items-center gap-1.5 text-sm text-slate-400 transition-colors hover:text-emerald-300"

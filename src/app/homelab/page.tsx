@@ -107,7 +107,7 @@ export default function HomelabPage() {
         title="Homelab"
         description="An Odroid HC4 running Arch Linux with a small Docker Compose fleet for DNS, smart-home, reverse proxy, and media automation. Compose files and non-sensitive config live on GitHub."
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
         <div className="mb-8">
           <a
             href={REPO_URL}
