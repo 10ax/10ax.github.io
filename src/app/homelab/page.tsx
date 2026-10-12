@@ -36,6 +36,15 @@ type Service = {
 
 const REPO_URL = "https://github.com/10ax/docker";
 
+/*
+ * Brand hexes whose contrast against the light theme's `bg-sunken` chip (`#eaeae4`)
+ * falls below the 3:1 an icon needs: adguard `#68BC71` (1.93:1), homeassistant
+ * `#18BCF2` (1.83:1), portainer `#13BEF9` (1.78:1). Those glyphs fall back to
+ * `currentColor` so the caller's `text-ink` token drives them; the two that pass
+ * (nginx 3.21:1, qbittorrent 4.61:1) keep their brand colour.
+ */
+const LOW_CONTRAST_BRAND_SLUGS = new Set(["adguard", "homeassistant", "portainer"]);
+
 const STACK = [
   { icon: HardDrives, label: "Host", value: "Odroid HC4 · Arch Linux" },
   { icon: Cpu, label: "Container runtime", value: "Docker + Compose" },
@@ -104,10 +113,10 @@ const PHOTOS: { src: string; alt: string; width: number; height: number }[] = [
     height: 1200,
   },
   {
-    src: "https://picsum.photos/seed/ft-homelab-shelf/1400/1050",
+    src: "https://picsum.photos/seed/ft-homelab-shelf/1400/1750",
     alt: "Placeholder shelf photograph",
     width: 1400,
-    height: 1050,
+    height: 1750,
   },
 ];
 
@@ -135,14 +144,16 @@ export default function HomelabPage() {
 
         <dl className="mt-10 grid gap-4 md:grid-cols-3">
           {STACK.map(({ icon: Icon, label, value }, index) => (
-            <Reveal key={label} delay={index * 0.05}>
-              <div className="border-line bg-panel flex h-full items-center gap-3 rounded-panel border p-5">
+            <Reveal
+              key={label}
+              delay={index * 0.05}
+              className={index === 0 ? undefined : "border-line md:border-l md:pl-4"}
+            >
+              <dt className="text-ink-muted flex items-center gap-2 font-mono text-xs tracking-wide uppercase">
                 <Icon size={20} weight="regular" aria-hidden className="text-accent shrink-0" />
-                <div>
-                  <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">{label}</dt>
-                  <dd className="text-ink mt-1 text-sm font-medium">{value}</dd>
-                </div>
-              </div>
+                {label}
+              </dt>
+              <dd className="text-ink mt-1 text-sm font-medium">{value}</dd>
             </Reveal>
           ))}
         </dl>
@@ -161,7 +172,11 @@ export default function HomelabPage() {
                       <div className="flex items-center gap-3">
                         <span className="border-line bg-sunken flex h-9 w-9 shrink-0 items-center justify-center rounded-chip border">
                           {service.iconSlug ? (
-                            <BrandIcon slug={service.iconSlug} className="text-ink h-5 w-5" />
+                            <BrandIcon
+                              slug={service.iconSlug}
+                              useBrandColor={!LOW_CONTRAST_BRAND_SLUGS.has(service.iconSlug)}
+                              className="text-ink h-5 w-5"
+                            />
                           ) : (
                             <Fallback size={18} weight="regular" aria-hidden className="text-accent" />
                           )}

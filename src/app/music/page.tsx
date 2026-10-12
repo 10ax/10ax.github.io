@@ -64,17 +64,19 @@ export default async function MusicPage() {
         ) : (
           <ul className="grid gap-4 md:grid-cols-2">
             {FALLBACK_ARTISTS.map((artist, index) => (
-              <Reveal key={artist.name} delay={index * 0.05}>
-                <div className="border-line bg-panel h-full rounded-panel border p-5">
-                  <div className="flex items-center gap-2">
-                    <MusicNotes size={18} weight="regular" aria-hidden className="text-accent" />
-                    <h2 className="font-display text-ink text-base font-semibold tracking-tight">
-                      {artist.name}
-                    </h2>
+              <li key={artist.name}>
+                <Reveal delay={index * 0.05} className="h-full">
+                  <div className="border-line bg-panel h-full rounded-panel border p-5">
+                    <div className="flex items-center gap-2">
+                      <MusicNotes size={18} weight="regular" aria-hidden className="text-accent" />
+                      <h2 className="font-display text-ink text-base font-semibold tracking-tight">
+                        {artist.name}
+                      </h2>
+                    </div>
+                    <p className="text-ink-muted mt-2 text-sm leading-relaxed">{artist.note}</p>
                   </div>
-                  <p className="text-ink-muted mt-2 text-sm leading-relaxed">{artist.note}</p>
-                </div>
-              </Reveal>
+                </Reveal>
+              </li>
             ))}
           </ul>
         )}
