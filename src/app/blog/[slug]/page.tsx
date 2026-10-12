@@ -33,18 +33,16 @@ export async function generateMetadata({
 }
 
 const mdxComponents = {
-  // The page owns the single `h1` (the post title), so each mapped heading is demoted one
-  // level: MDX `h1` renders `h2`, and so on. The outline stays contiguous and the page
-  // keeps exactly one `h1`. Each level keeps its own visual size, so the largest type
-  // stays on the first mapped heading.
+  // The page owns the `h1`, so a mapped `h1` becomes an `h2`; the remaining levels are
+  // unchanged, so the outline has no gaps.
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="font-display text-ink mt-10 text-3xl font-semibold tracking-tight" {...props} />
+    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
+    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h4 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
+    <h3 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="text-ink-muted mt-4 max-w-[65ch] leading-relaxed" {...props} />
