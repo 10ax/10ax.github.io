@@ -15,6 +15,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "gray-matter": "^4.0.3",
     "next": "16.3.8",
+    "motion": "^14.1.0",
     "next-mdx-remote": "^6.0.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
