@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowSquareOut, MusicNotes, Spinner } from "@phosphor-icons/react";
+import { MusicNotes, ArrowSquareOut } from "@phosphor-icons/react";
 
 export type LastFmImage = { size: string; "#text": string };
 export type LastFmTrack = {
@@ -48,6 +48,19 @@ async function fetchPage(page: number): Promise<LastFmTrack[]> {
   return data?.recenttracks?.track ?? [];
 }
 
+/** A skeleton row shaped like a real row, so loading looks like the content. */
+function SkeletonRow() {
+  return (
+    <li className="border-line flex items-center gap-3 border-b py-3">
+      <span className="bg-sunken h-12 w-12 shrink-0 animate-pulse rounded-chip" />
+      <span className="flex-1">
+        <span className="bg-sunken block h-3.5 w-3/5 animate-pulse rounded" />
+        <span className="bg-sunken mt-2 block h-3 w-2/5 animate-pulse rounded" />
+      </span>
+    </li>
+  );
+}
+
 export function TrackList({ initialTracks }: { initialTracks: LastFmTrack[] }) {
   const [pages, setPages] = useState<LastFmTrack[][]>([initialTracks]);
   const [loading, setLoading] = useState(false);
@@ -87,69 +100,69 @@ export function TrackList({ initialTracks }: { initialTracks: LastFmTrack[] }) {
 
   return (
     <>
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {pages.flatMap((page, pi) =>
-          page.map((t, i) => {
-            const img = pickImage(t.image);
-            const isNow = t["@attr"]?.nowplaying === "true";
+      <ul className="border-line border-t">
+        {pages.flatMap((page, pageIndex) =>
+          page.map((track, index) => {
+            const image = pickImage(track.image);
+            const isNow = track["@attr"]?.nowplaying === "true";
             return (
-              <li key={trackKey(t, pi, i)}>
+              <li key={trackKey(track, pageIndex, index)} className="border-line border-b">
                 <a
-                  href={t.url}
+                  href={track.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-3 transition-colors hover:border-emerald-500/50"
+                  className="focus-ring group flex items-center gap-3 py-3"
                 >
-                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-slate-800">
-                    {img ? (
+                  <span className="bg-sunken border-line relative h-12 w-12 shrink-0 overflow-hidden rounded-chip border">
+                    {image ? (
                       <Image
-                        src={img}
-                        alt={`${t.name} cover`}
+                        src={image}
+                        alt={`${track.name} cover`}
                         fill
-                        sizes="64px"
-                        className="object-cover"
+                        sizes="48px"
                         unoptimized
+                        className="object-cover"
                       />
                     ) : (
                       <MusicNotes
-                        size={24}
+                        size={18}
                         weight="regular"
-                        className="absolute inset-0 m-auto text-slate-600"
+                        aria-hidden
+                        className="text-ink-muted absolute inset-0 m-auto"
                       />
                     )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-100 group-hover:text-emerald-300">
-                      {t.name}
-                    </p>
-                    <p className="truncate text-xs text-slate-400">{artistName(t)}</p>
-                    <p className="mt-1 font-mono text-[10px] text-slate-500">
-                      {isNow ? "▶ now playing" : t.date?.["#text"] ?? ""}
-                    </p>
-                  </div>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="text-ink group-hover:text-accent block truncate text-sm font-semibold transition-colors">
+                      {track.name}
+                    </span>
+                    <span className="text-ink-muted block truncate text-xs">{artistName(track)}</span>
+                  </span>
+                  <span className="text-ink-muted tabular hidden shrink-0 font-mono text-xs sm:block">
+                    {isNow ? "now playing" : (track.date?.["#text"] ?? "")}
+                  </span>
                   <ArrowSquareOut
                     size={14}
                     weight="regular"
-                    className="shrink-0 self-start text-slate-600"
+                    aria-hidden
+                    className="text-ink-muted shrink-0"
                   />
                 </a>
               </li>
             );
           }),
         )}
+        {loading && (
+          <>
+            <SkeletonRow />
+            <SkeletonRow />
+            <SkeletonRow />
+          </>
+        )}
       </ul>
 
-      <div ref={sentinelRef} className="mt-8 flex justify-center py-6 text-sm text-slate-500">
-        {loading ? (
-          <span className="inline-flex items-center gap-2">
-            <Spinner size={16} weight="regular" className="animate-spin" />
-            Loading more…
-          </span>
-        ) : done ? (
-          tracks.length > 0 ? <span>No more tracks.</span> : null
-        ) : canFetch ? (
-          <span>Scroll for more</span>
-        ) : null}
+      <div ref={sentinelRef} className="text-ink-muted py-6 text-sm">
+        {done && tracks.length > 0 && <span>That is the whole history I can fetch.</span>}
       </div>
     </>
   );

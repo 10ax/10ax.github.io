@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { MusicNotes } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
+import { Reveal } from "@/components/reveal";
 import { TrackList, type LastFmTrack } from "@/components/track-list";
 
 export const metadata: Metadata = {
@@ -55,28 +56,25 @@ export default async function MusicPage() {
       <PageHeader
         eyebrow="now playing"
         title="Music"
-        description={
-          initial
-            ? "Recently played, pulled live from my Last.fm account. Scroll for more."
-            : "A short list of artists in heavy rotation. Set NEXT_PUBLIC_LASTFM_API_KEY and NEXT_PUBLIC_LASTFM_USER to show live scrobbles."
-        }
+        description="Long songs, odd time signatures, and a scrobble feed that predates this site."
       />
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
         {initial && initial.length > 0 ? (
           <TrackList initialTracks={initial} />
         ) : (
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {FALLBACK_ARTISTS.map((a) => (
-              <li
-                key={a.name}
-                className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
-              >
-                <div className="flex items-center gap-2">
-                  <MusicNotes size={16} weight="regular" className="text-emerald-400" />
-                  <h2 className="text-sm font-semibold text-slate-100">{a.name}</h2>
+          <ul className="grid gap-4 md:grid-cols-2">
+            {FALLBACK_ARTISTS.map((artist, index) => (
+              <Reveal key={artist.name} delay={index * 0.05}>
+                <div className="border-line bg-panel h-full rounded-panel border p-5">
+                  <div className="flex items-center gap-2">
+                    <MusicNotes size={18} weight="regular" aria-hidden className="text-accent" />
+                    <h2 className="font-display text-ink text-base font-semibold tracking-tight">
+                      {artist.name}
+                    </h2>
+                  </div>
+                  <p className="text-ink-muted mt-2 text-sm leading-relaxed">{artist.note}</p>
                 </div>
-                <p className="mt-1 text-sm text-slate-400">{a.note}</p>
-              </li>
+              </Reveal>
             ))}
           </ul>
         )}
