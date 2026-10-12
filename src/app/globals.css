@@ -185,3 +185,28 @@ body {
     animation: none;
   }
 }
+
+/*
+ * Syntax highlighting. `rehype-pretty-code` runs with a light and a dark Shiki theme, so
+ * each token span carries `--shiki-light` and `--shiki-dark` as inline custom properties
+ * and nothing paints them without these rules. Backgrounds are deliberately not consumed:
+ * the block's surface comes from `bg-sunken` on the `pre`, and `keepBackground: false`
+ * keeps Shiki from painting one of its own.
+ */
+code[data-theme*=" "],
+code[data-theme*=" "] span {
+  color: var(--shiki-light);
+}
+
+[data-theme="dark"] code[data-theme*=" "],
+[data-theme="dark"] code[data-theme*=" "] span {
+  color: var(--shiki-dark);
+}
+
+/* Before the pre-paint script runs, follow the system preference, as the token layer does. */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]) code[data-theme*=" "],
+  html:not([data-theme="light"]) code[data-theme*=" "] span {
+    color: var(--shiki-dark);
+  }
+}

@@ -33,14 +33,18 @@ export async function generateMetadata({
 }
 
 const mdxComponents = {
+  // The page owns the single `h1` (the post title), so each mapped heading is demoted one
+  // level: MDX `h1` renders `h2`, and so on. The outline stays contiguous and the page
+  // keeps exactly one `h1`. Each level keeps its own visual size, so the largest type
+  // stays on the first mapped heading.
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h1 className="font-display text-ink mt-10 text-3xl font-semibold tracking-tight" {...props} />
+    <h2 className="font-display text-ink mt-10 text-3xl font-semibold tracking-tight" {...props} />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
+    <h3 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
+    <h4 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="text-ink-muted mt-4 max-w-[65ch] leading-relaxed" {...props} />
@@ -74,8 +78,9 @@ const mdxComponents = {
         "[&_code>span[data-highlighted-line]]:pl-[14px]",
         "[&_mark[data-highlighted-chars]]:bg-accent/20 [&_mark[data-highlighted-chars]]:rounded",
         "[&_mark[data-highlighted-chars]]:px-1",
-        // Line numbers: `content-[counter(line)]` sets --tw-content; a raw
-        // `[content:counter(line)]` is clobbered by any `before:*` utility. Scoped to
+        // Line numbers: the `content-[counter(line)]` utility sets --tw-content, while a
+        // raw `content: counter(line)` declaration is clobbered by any `before:*` utility,
+        // which re-emits `content: var(--tw-content)`. Scoped to
         // `code[data-line-numbers]`, not `pre` (commit 951770d).
         "[&_code[data-line-numbers]]:[counter-reset:line]",
         "[&_code[data-line-numbers]>span[data-line]]:before:content-[counter(line)]",

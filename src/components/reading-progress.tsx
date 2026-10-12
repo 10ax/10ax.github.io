@@ -6,8 +6,8 @@ import { motion, useReducedMotion, useScroll, useSpring } from "motion/react";
  * A hairline at the top of the viewport showing how much of the article is behind you.
  *
  * `useScroll` with no target tracks the document, which is exactly the article here. The
- * spring keeps it from jittering on trackpads. Under reduced motion the bar is a plain
- * fixed line at rest, so the position information is still available.
+ * spring keeps it from jittering on trackpads. Under reduced motion the bar is collapsed
+ * to zero width, so it never animates and never grows as you read.
  */
 export function ReadingProgress() {
   const reduce = useReducedMotion();
