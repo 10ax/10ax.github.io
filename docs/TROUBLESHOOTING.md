@@ -347,4 +347,10 @@ while writing this guide; they are recorded so the next person does not rediscov
   site. None were touched: resolving them means moving dependency majors, which is a
   behaviour change and the owner's decision. Run `pnpm audit` for the current list.
 
+- `/cv` was added to `src/app/sitemap.ts` and to the navigation, which changed the
+  contract that `tests/metadata-routes.test.ts` pins. That test now expects six static
+  routes and the `/cv` entry carries `priority: 0.9`. If a future change adds a route,
+  update the count in that file in the same commit; the test is deliberately brittle so a
+  missing sitemap entry is a failure rather than an invisible omission.
+
 <!-- autodoc:end -->

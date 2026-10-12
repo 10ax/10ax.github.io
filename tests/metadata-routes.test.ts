@@ -53,11 +53,12 @@ describe("sitemap", () => {
     expect(mod.dynamic).toBe("force-static");
   });
 
-  it("lists the five static routes first, in a fixed order", async () => {
+  it("lists the six static routes first, in a fixed order", async () => {
     const entries = await loadSitemap(undefined);
 
-    expect(entries.slice(0, 5).map((e) => e.url)).toEqual([
+    expect(entries.slice(0, 6).map((e) => e.url)).toEqual([
       FALLBACK,
+      `${FALLBACK}/cv`,
       `${FALLBACK}/blog`,
       `${FALLBACK}/gallery`,
       `${FALLBACK}/music`,
@@ -70,6 +71,10 @@ describe("sitemap", () => {
     const byUrl = new Map(entries.map((e) => [e.url, e]));
 
     expect(byUrl.get(FALLBACK)).toMatchObject({ changeFrequency: "monthly", priority: 1 });
+    expect(byUrl.get(`${FALLBACK}/cv`)).toMatchObject({
+      changeFrequency: "monthly",
+      priority: 0.9,
+    });
     expect(byUrl.get(`${FALLBACK}/blog`)).toMatchObject({
       changeFrequency: "weekly",
       priority: 0.8,
@@ -92,11 +97,11 @@ describe("sitemap", () => {
     const posts = await getAllPosts();
     const entries = await loadSitemap(undefined);
 
-    expect(entries).toHaveLength(5 + posts.length);
-    expect(entries.slice(5).map((e) => e.url)).toEqual(
+    expect(entries).toHaveLength(6 + posts.length);
+    expect(entries.slice(6).map((e) => e.url)).toEqual(
       posts.map((p) => `${FALLBACK}/blog/${p.slug}`),
     );
-    for (const entry of entries.slice(5)) {
+    for (const entry of entries.slice(6)) {
       expect(entry).toMatchObject({ changeFrequency: "yearly", priority: 0.7 });
     }
   });
@@ -106,7 +111,7 @@ describe("sitemap", () => {
     const entries = await loadSitemap(undefined);
 
     for (const [i, post] of posts.entries()) {
-      expect(entries[5 + i].lastModified).toEqual(new Date(post.date));
+      expect(entries[6 + i].lastModified).toEqual(new Date(post.date));
     }
   });
 
@@ -123,7 +128,7 @@ describe("sitemap", () => {
     const entries = await loadSitemap("https://example.com/");
     expect(entries.every((e) => e.url.startsWith("https://example.com"))).toBe(true);
     expect(entries[0].url).toBe("https://example.com");
-    expect(entries[1].url).toBe("https://example.com/blog");
+    expect(entries[2].url).toBe("https://example.com/blog");
   });
 });
 
