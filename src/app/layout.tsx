@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ViewTransition } from "react";
 import { Archivo, Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
@@ -92,7 +93,7 @@ export default function RootLayout({
         <div className="grain" aria-hidden="true" />
         <SkipLink />
         <SiteHeader />
-        {children}
+        <ViewTransition>{children}</ViewTransition>
         <SiteFooter />
       </body>
     </html>

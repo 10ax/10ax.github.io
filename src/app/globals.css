@@ -187,6 +187,41 @@ body {
 }
 
 /*
+ * View transitions. The header is persistent chrome: it must not animate on every
+ * navigation, so it carries `viewTransitionName: "site-header"` in `site-header.tsx`
+ * and its group is frozen here. Suppressing only the group is not enough - the old and
+ * new snapshots have their own default crossfade - so the old snapshot is hidden and
+ * the new one is pinned. This is the anchoring recipe from the vendored guide
+ * (`node_modules/next/dist/docs/01-app/02-guides/view-transitions.md`).
+ */
+::view-transition-group(site-header) {
+  animation: none;
+  z-index: 100;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+/*
+ * Motion sensitivity. A route change swaps the whole page, so the crossfade is the one
+ * animation a visitor cannot opt out of by not clicking; honour the preference by
+ * removing it entirely, which falls back to the browser's instant swap.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/*
  * Syntax highlighting. `rehype-pretty-code` runs with a light and a dark Shiki theme, so
  * each token span carries `--shiki-light` and `--shiki-dark` as inline custom properties
  * and nothing paints them without these rules. Backgrounds are deliberately not consumed:

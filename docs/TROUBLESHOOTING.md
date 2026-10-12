@@ -285,6 +285,43 @@ failure rather than a missing file.
 
 ---
 
+### Symptom — route navigation reloads the page instead of crossfading, or you are checking whether the view transitions were verified
+
+**Check:**
+
+```bash
+grep -n 'viewTransition' next.config.ts
+pnpm run build && ls out/index.html out/cv/index.html out/blog/index.html
+```
+
+**Cause and status:** `experimental.viewTransition` is deliberately on in `next.config.ts`,
+`src/app/layout.tsx` wraps the page body in React's `<ViewTransition>`, and the header is
+named `site-header`. It was verified before being kept, and verified on the *exported* site
+rather than only in dev:
+
+- The static export builds with the flag on — `out/index.html`, `out/cv/index.html` and
+  `out/blog/index.html` all emit.
+- With JavaScript disabled every page still renders in full and navigates through its plain
+  `<a href>` links; the nav links carry no inline `onclick`.
+- With JavaScript on, a route change starts a real document view transition (~340 ms, the
+  browser's default crossfade) and no captured frame was blank.
+- `prefers-reduced-motion: reduce` drives the view-transition animation durations to `0s`,
+  removing the crossfade. The persistent header is frozen for the whole transition by
+  `viewTransitionName: "site-header"` in `src/components/site-header.tsx` plus the
+  `::view-transition-group(site-header)` rules in `src/app/globals.css`.
+
+**Dev-only caveat:** `pnpm run dev` needs its HMR websocket for client-side routing. In a
+headless browser that socket failed (`ERR_INVALID_HTTP_RESPONSE`) and every link click fell
+back to a full document load, so no transition could be observed there. A normal browser
+does not hit this; verify against `pnpm run build` with `out/` served over HTTP.
+
+**If the export ever fails to build with the flag on:** remove
+`experimental.viewTransition`, the `<ViewTransition>` wrapper in `src/app/layout.tsx`, and
+the `viewTransitionName` style in `src/components/site-header.tsx`. Do not work around it —
+a predictable static export is the invariant this feature was conditional on.
+
+---
+
 ## Known issues
 
 Things that are broken, stale, or half-finished as of `cd2f189`. None of them were fixed

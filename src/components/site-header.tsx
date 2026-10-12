@@ -30,7 +30,10 @@ export function SiteHeader() {
   const open = openAt !== null && openAt === pathname;
 
   return (
-    <header className="border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur">
+    <header
+      style={{ viewTransitionName: "site-header" }}
+      className="border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur"
+    >
       <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8">
         <Link
           href="/"
