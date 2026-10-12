@@ -6,6 +6,7 @@ import {
   Broadcast,
   Cpu,
   Cube,
+  Database,
   DownloadSimple,
   GitBranch,
   GlobeSimple,
@@ -15,6 +16,8 @@ import {
 } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { BrandIcon } from "@/components/brand-icon";
+import { Reveal } from "@/components/reveal";
+import { SpotlightCard } from "@/components/spotlight-card";
 
 export const metadata: Metadata = {
   title: "Homelab — Francesco Tenace",
@@ -36,7 +39,7 @@ const REPO_URL = "https://github.com/10ax/docker";
 const STACK = [
   { icon: HardDrives, label: "Host", value: "Odroid HC4 · Arch Linux" },
   { icon: Cpu, label: "Container runtime", value: "Docker + Compose" },
-  { icon: HardDrives, label: "Storage", value: "Unified /data volume" },
+  { icon: Database, label: "Storage", value: "Unified /data volume" },
 ];
 
 const SERVICES: Service[] = [
@@ -93,9 +96,19 @@ const SERVICES: Service[] = [
 ];
 
 // Place screenshots/rack photos under /public/homelab/ and reference here.
-const PHOTOS: { src: string; alt: string }[] = [
-  { src: "/next.svg", alt: "Placeholder homelab photo" },
-  { src: "/vercel.svg", alt: "Placeholder homelab photo" },
+const PHOTOS: { src: string; alt: string; width: number; height: number }[] = [
+  {
+    src: "https://picsum.photos/seed/ft-homelab-rack/1600/1200",
+    alt: "Placeholder rack photograph",
+    width: 1600,
+    height: 1200,
+  },
+  {
+    src: "https://picsum.photos/seed/ft-homelab-shelf/1400/1050",
+    alt: "Placeholder shelf photograph",
+    width: 1400,
+    height: 1050,
+  },
 ];
 
 export default function HomelabPage() {
@@ -103,115 +116,111 @@ export default function HomelabPage() {
     <>
       <PageHeader
         eyebrow="ssh homelab"
-        title="Homelab"
-        description="An Odroid HC4 running Arch Linux with a small Docker Compose fleet for DNS, smart-home, reverse proxy, and media automation. Compose files and non-sensitive config live on GitHub."
+        title="The rack in the corner"
+        description="An Odroid HC4 running Arch Linux with a small Docker Compose fleet for DNS, smart home, reverse proxy and media automation. The compose files and non-sensitive config live on GitHub."
       />
-      <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-6 py-12">
-        <div className="mb-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
+        <Reveal>
           <a
             href={REPO_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/60 px-4 py-2 text-sm text-slate-200 transition-colors hover:border-emerald-500/60 hover:text-emerald-300"
+            className="focus-ring border-line hover:border-line-strong inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors"
           >
-            <GitBranch size={16} weight="regular" />
+            <GitBranch size={16} weight="regular" aria-hidden />
             10ax/docker
-            <ArrowSquareOut size={14} weight="regular" className="opacity-60" />
+            <ArrowSquareOut size={14} weight="regular" aria-hidden className="text-ink-muted" />
           </a>
-        </div>
-        <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {STACK.map(({ icon: Icon, label, value }) => (
-            <div
-              key={label}
-              className="flex items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/50 p-4"
-            >
-              <Icon size={20} weight="regular" className="text-emerald-400" />
-              <div>
-                <p className="text-xs uppercase tracking-wider text-slate-500">
-                  {label}
-                </p>
-                <p className="text-sm font-medium text-slate-100">{value}</p>
-              </div>
-            </div>
-          ))}
-        </section>
+        </Reveal>
 
-        <section className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-100">
-            Services
+        <dl className="mt-10 grid gap-4 md:grid-cols-3">
+          {STACK.map(({ icon: Icon, label, value }, index) => (
+            <Reveal key={label} delay={index * 0.05}>
+              <div className="border-line bg-panel flex h-full items-center gap-3 rounded-panel border p-5">
+                <Icon size={20} weight="regular" aria-hidden className="text-accent shrink-0" />
+                <div>
+                  <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">{label}</dt>
+                  <dd className="text-ink mt-1 text-sm font-medium">{value}</dd>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </dl>
+
+        <section aria-labelledby="services" className="mt-20">
+          <h2 id="services" className="font-display text-ink text-2xl font-semibold tracking-tight">
+            What runs on it
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {SERVICES.map((s) => {
-              const Fallback = s.fallbackIcon;
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {SERVICES.map((service, index) => {
+              const Fallback = service.fallbackIcon;
               return (
-                <article
-                  key={s.name}
-                  className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 transition-colors hover:border-emerald-500/50"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-950">
-                        {s.iconSlug ? (
-                          <BrandIcon slug={s.iconSlug} className="h-5 w-5" />
-                        ) : (
-                          <Fallback size={20} weight="regular" className="text-emerald-400" />
-                        )}
+                <Reveal key={service.name} delay={index * 0.04}>
+                  <SpotlightCard className="h-full">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="border-line bg-sunken flex h-9 w-9 shrink-0 items-center justify-center rounded-chip border">
+                          {service.iconSlug ? (
+                            <BrandIcon slug={service.iconSlug} className="text-ink h-5 w-5" />
+                          ) : (
+                            <Fallback size={18} weight="regular" aria-hidden className="text-accent" />
+                          )}
+                        </span>
+                        <h3 className="font-display text-ink text-base font-semibold tracking-tight">
+                          {service.name}
+                        </h3>
                       </div>
-                      <h3 className="text-base font-semibold text-slate-100">
-                        {s.name}
-                      </h3>
+                      {service.url && (
+                        <a
+                          href={service.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={`${service.name} homepage`}
+                          className="focus-ring text-ink-muted hover:text-accent transition-colors"
+                        >
+                          <ArrowSquareOut size={16} weight="regular" aria-hidden />
+                        </a>
+                      )}
                     </div>
-                    {s.url && (
-                      <a
-                        href={s.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`${s.name} homepage`}
-                        className="text-slate-500 transition-colors hover:text-emerald-300"
-                      >
-                        <ArrowSquareOut size={16} weight="regular" />
-                      </a>
-                    )}
-                  </div>
-                  <p className="mt-3 text-sm leading-relaxed text-slate-300">
-                    {s.description}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {s.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="rounded-md border border-slate-700 bg-slate-800/70 px-2 py-0.5 font-mono text-xs text-slate-300"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </article>
+                    <p className="text-ink-muted mt-3 text-sm leading-relaxed">{service.description}</p>
+                    <ul className="mt-3 flex flex-wrap gap-1.5">
+                      {service.tags.map((tag) => (
+                        <li
+                          key={tag}
+                          className="border-line text-ink-muted rounded-chip border px-2 py-0.5 font-mono text-xs"
+                        >
+                          {tag}
+                        </li>
+                      ))}
+                    </ul>
+                  </SpotlightCard>
+                </Reveal>
               );
             })}
           </div>
         </section>
 
-        <section className="mt-10">
-          <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-100">
-            Rack photos
+        <section aria-labelledby="photos" className="mt-20">
+          <h2 id="photos" className="font-display text-ink text-2xl font-semibold tracking-tight">
+            The hardware, photographed
           </h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {PHOTOS.map((photo, i) => (
-              <div
-                key={`${photo.src}-${i}`}
-                className="relative aspect-video overflow-hidden rounded-2xl border border-slate-800 bg-slate-950"
-              >
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  sizes="(max-width: 640px) 100vw, 50vw"
-                  className="object-contain p-10"
-                />
-              </div>
+          <ul className="mt-8 columns-1 gap-4 sm:columns-2">
+            {PHOTOS.map((photo, index) => (
+              <li key={photo.src} className="mb-4 break-inside-avoid">
+                <Reveal delay={index * 0.05}>
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={photo.width}
+                    height={photo.height}
+                    unoptimized
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="border-line h-auto w-full rounded-panel border"
+                  />
+                </Reveal>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
       </main>
     </>
