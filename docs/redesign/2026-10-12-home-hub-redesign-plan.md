@@ -2690,10 +2690,10 @@ export function NowStrip() {
 - [ ] **Step 2: Write `src/components/home/interests-bento.tsx`**
 
 ```tsx
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Broadcast, Disc, GameController, Terminal } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
+import { Sprite } from "@/components/scene/sprite";
 
 /**
  * Five interests, five cells, asymmetric 2+3. Two cells carry real visual variation (a
@@ -2788,21 +2788,14 @@ export function InterestsBento() {
           </Link>
         </Reveal>
 
-        <Reveal delay={0.2} className="md:col-span-2">
+        <Reveal delay={0.2}>
           <Link
             href="/blog"
             className="focus-ring group border-line bg-panel hover:border-accent relative flex h-full min-h-[180px] flex-col justify-end overflow-hidden rounded-panel border transition-colors"
           >
-            {/* A real image slot, not a drawn rectangle: swap the file when the photograph
-                exists. `unoptimized` because the export has no image optimiser. */}
-            <Image
-              src="/sprites/trainer-idle@4x.png"
-              alt=""
-              width={64}
-              height={96}
-              unoptimized
-              className="absolute top-6 right-8 h-24 w-16 [image-rendering:pixelated] opacity-90"
-            />
+            {/* The mascot, rendered through the component that understands the strip. It is
+                `aria-hidden` decoration, and it freezes under `prefers-reduced-motion`. */}
+            <Sprite state="idle" className="absolute top-6 right-8 opacity-90" />
             <div className="p-6">
               <h3 className="font-display text-ink text-xl font-semibold tracking-tight">
                 Writing it down
@@ -2926,6 +2919,7 @@ export function LatestWriting({ posts }: { posts: WritingItem[] }) {
             )}
           </Link>
         </Reveal>
+        {rest.length > 0 && (
         <ul className="divide-line divide-y">
           {rest.slice(0, 3).map((post, index) => (
             <li key={post.slug}>
@@ -2940,6 +2934,7 @@ export function LatestWriting({ posts }: { posts: WritingItem[] }) {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </section>
   );
@@ -2971,7 +2966,7 @@ export function ListeningStrip({ tracks }: { tracks: ListeningItem[] }) {
     <section className="border-line border-t">
       <div className="mx-auto w-full max-w-[1400px] px-5 py-14 md:px-8">
         <Reveal>
-          <h2 className="text-ink-muted font-mono text-xs tracking-wide uppercase">
+          <h2 className="font-display text-ink text-2xl font-semibold tracking-tight">
             Recently played
           </h2>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
