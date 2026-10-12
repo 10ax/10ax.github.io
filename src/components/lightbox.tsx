@@ -34,11 +34,27 @@ export function Lightbox({
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
 
+  const open = index !== null;
+
+  /*
+   * Focus is its own effect, keyed only on whether the dialog is open, so it moves in once
+   * on open and back out exactly once on close. Folding it into the key-listener effect
+   * (which re-runs on every navigation) would pull focus onto the thumbnail mid-gallery and
+   * scroll the page behind the dialog.
+   */
+  useEffect(() => {
+    if (!open) {
+      (returnFocusRef.current as HTMLElement | null)?.focus?.();
+      returnFocusRef.current = null;
+      return;
+    }
+    returnFocusRef.current = document.activeElement;
+    dialogRef.current?.focus();
+  }, [open]);
+
   useEffect(() => {
     if (index === null) return;
     const current: number = index;
-    returnFocusRef.current = document.activeElement;
-    dialogRef.current?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
@@ -50,10 +66,14 @@ export function Lightbox({
         if (!focusable || focusable.length === 0) return;
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
+        const active = document.activeElement;
+        // Focus sits on the dialog container itself (tabIndex={-1}) on open and after every
+        // navigation, so Shift+Tab from there must be caught too: otherwise it walks to the
+        // previous tabbable element in DOM order, a thumbnail behind the overlay.
+        if (event.shiftKey && (active === first || active === dialogRef.current)) {
           event.preventDefault();
           last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
+        } else if (!event.shiftKey && active === last) {
           event.preventDefault();
           first.focus();
         }
@@ -61,10 +81,7 @@ export function Lightbox({
     }
 
     document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      (returnFocusRef.current as HTMLElement | null)?.focus?.();
-    };
+    return () => document.removeEventListener("keydown", onKeyDown);
   }, [index, onClose, onNavigate, photos.length]);
 
   if (index === null) return null;

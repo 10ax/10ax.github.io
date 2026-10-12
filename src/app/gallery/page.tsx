@@ -29,7 +29,7 @@ export default function GalleryPage() {
         title="Gallery"
         description="Photographs. Mostly places that needed walking to."
       />
-      <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
         <GalleryGrid photos={PHOTOS} />
       </main>
     </>

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Lightbox, type LightboxPhoto } from "@/components/lightbox";
 
 /**
@@ -13,6 +13,10 @@ import { Lightbox, type LightboxPhoto } from "@/components/lightbox";
  */
 export function GalleryGrid({ photos }: { photos: LightboxPhoto[] }) {
   const [open, setOpen] = useState<number | null>(null);
+
+  // Stable identities, so the lightbox's handlers do not change on every render.
+  const close = useCallback(() => setOpen(null), []);
+  const navigate = useCallback((next: number) => setOpen(next), []);
 
   return (
     <>
@@ -41,8 +45,8 @@ export function GalleryGrid({ photos }: { photos: LightboxPhoto[] }) {
       <Lightbox
         photos={photos}
         index={open}
-        onClose={() => setOpen(null)}
-        onNavigate={(next) => setOpen(next)}
+        onClose={close}
+        onNavigate={navigate}
       />
     </>
   );
