@@ -36,15 +36,6 @@ type Service = {
 
 const REPO_URL = "https://github.com/10ax/docker";
 
-/*
- * Brand hexes whose contrast against the light theme's `bg-sunken` chip (`#eaeae4`)
- * falls below the 3:1 an icon needs: adguard `#68BC71` (1.93:1), homeassistant
- * `#18BCF2` (1.83:1), portainer `#13BEF9` (1.78:1). Those glyphs fall back to
- * `currentColor` so the caller's `text-ink` token drives them; the two that pass
- * (nginx 3.21:1, qbittorrent 4.61:1) keep their brand colour.
- */
-const LOW_CONTRAST_BRAND_SLUGS = new Set(["adguard", "homeassistant", "portainer"]);
-
 const STACK = [
   { icon: HardDrives, label: "Host", value: "Odroid HC4 · Arch Linux" },
   { icon: Cpu, label: "Container runtime", value: "Docker + Compose" },
@@ -174,8 +165,8 @@ export default function HomelabPage() {
                           {service.iconSlug ? (
                             <BrandIcon
                               slug={service.iconSlug}
-                              useBrandColor={!LOW_CONTRAST_BRAND_SLUGS.has(service.iconSlug)}
-                              className="text-ink h-5 w-5"
+                              useBrandColor={false}
+                              className="text-accent h-5 w-5"
                             />
                           ) : (
                             <Fallback size={18} weight="regular" aria-hidden className="text-accent" />
