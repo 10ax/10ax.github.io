@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Required when `output: 'export'` is set in next.config.ts
 export const dynamic = "force-static";
 
-export const alt = "Francesco Tenace — Full-stack Developer";
+export const alt = "Francesco Tenace | Full-stack developer";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
+/*
+ * Token layer. This is the only file where raw colour values are allowed: every
+ * component reads a token utility, so a theme swap is a value change here and nowhere
+ * else. Both theme blocks must define the same names - `tests/design-tokens.test.ts`
+ * fails on a token that exists in one theme and is forgotten in the other.
+ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+  --surface: #f7f7f5;
+  --panel: #fdfcfa;
+  --sunken: #eaeae4;
+  --line: rgb(8 9 11 / 0.1);
+  --line-strong: rgb(8 9 11 / 0.18);
+  --ink: #14161a;
+  --ink-muted: #5b626b;
+  --accent: #106b50;
+  --accent-ink: #fdfcfa;
+  --star: rgb(8 9 11 / 0.55);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --surface: #f7f7f5;
+  --panel: #fdfcfa;
+  --sunken: #eaeae4;
+  --line: rgb(8 9 11 / 0.1);
+  --line-strong: rgb(8 9 11 / 0.18);
+  --ink: #14161a;
+  --ink-muted: #5b626b;
+  --accent: #106b50;
+  --accent-ink: #fdfcfa;
+  --star: rgb(8 9 11 / 0.55);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #08090b;
+  --panel: #0f1116;
+  --sunken: #050608;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.16);
+  --ink: #e8eaed;
+  --ink-muted: #8b929c;
+  --accent: #3fbf94;
+  --accent-ink: #04231a;
+  --star: rgb(255 255 255 / 0.85);
+}
+
+/* Before the pre-paint script runs, follow the system preference. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --surface: #08090b;
+    --panel: #0f1116;
+    --sunken: #050608;
+    --line: rgb(255 255 255 / 0.08);
+    --line-strong: rgb(255 255 255 / 0.16);
+    --ink: #e8eaed;
+    --ink-muted: #8b929c;
+    --accent: #3fbf94;
+    --accent-ink: #04231a;
+    --star: rgb(255 255 255 / 0.85);
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-star: var(--star);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-archivo);
+  --font-pixel: var(--font-silkscreen);
+
+  --radius-panel: 16px;
+  --radius-chip: 8px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Shape language. Panels are 16px, chips and inputs 8px, interactive elements are
+ * pills. Pixel panels notched their corners and take a 2px border, which is the 8-bit
+ * accent; they are never used for body content.
+ */
+.pixel-panel {
+  border: 2px solid var(--line-strong);
+  border-radius: 0;
+  clip-path: polygon(
+    6px 0, calc(100% - 6px) 0, calc(100% - 6px) 6px, 100% 6px,
+    100% calc(100% - 6px), calc(100% - 6px) calc(100% - 6px),
+    calc(100% - 6px) 100%, 6px 100%, 6px calc(100% - 6px), 0 calc(100% - 6px),
+    0 6px, 6px 6px
+  );
+}
+
+/* One fixed noise layer, never on a scrolling container. */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.focus-ring:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
