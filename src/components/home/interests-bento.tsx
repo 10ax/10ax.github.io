@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Broadcast, Disc, GameController, Terminal } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
+import { Sprite } from "@/components/scene/sprite";
 
 /**
  * Five interests, five cells on a three-column track: the lead music cell spans two
@@ -107,16 +107,9 @@ export function InterestsBento() {
             href="/blog"
             className="focus-ring group border-line bg-panel hover:border-accent relative flex h-full min-h-[180px] flex-col justify-end overflow-hidden rounded-panel border transition-colors"
           >
-            {/* The site's own sprite, not a drawn rectangle. `unoptimized` because the
-                export has no image optimiser. */}
-            <Image
-              src="/sprites/trainer-idle@4x.png"
-              alt=""
-              width={64}
-              height={96}
-              unoptimized
-              className="absolute top-6 right-8 h-24 w-16 [image-rendering:pixelated] opacity-90"
-            />
+            {/* The site's own sprite, drawn by the shared Sprite component: one 64x96 frame
+                of the idle strip, stepped by CSS. `aria-hidden` is built in. */}
+            <Sprite state="idle" className="absolute top-6 right-8 opacity-90" />
             <div className="p-6">
               <h3 className="font-display text-ink text-xl font-semibold tracking-tight">
                 Writing it down
