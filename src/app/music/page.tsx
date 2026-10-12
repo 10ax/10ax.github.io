@@ -5,7 +5,7 @@ import { Reveal } from "@/components/reveal";
 import { TrackList, type LastFmTrack } from "@/components/track-list";
 
 export const metadata: Metadata = {
-  title: "Music — Francesco Tenace",
+  title: "Music | Francesco Tenace",
   description: "What I'm listening to lately, pulled from Last.fm.",
 };
 

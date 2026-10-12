@@ -1,6 +1,18 @@
 @import "tailwindcss";
 
 /*
+ * Tailwind v4 scans the whole repository for class-shaped syntax, including prose: the
+ * design docs, the task briefs under `.superpowers/` and `CLAUDE.md` mention utility
+ * class names as examples, and every one of those mentions is compiled into the shipped
+ * stylesheet even though no component uses it. These paths are documentation, never a
+ * render target, so exclude them from detection. `@source not` is supported from
+ * Tailwind 4.1; this project is on 4.3.
+ */
+@source not "../../docs";
+@source not "../../.superpowers";
+@source not "../../CLAUDE.md";
+
+/*
  * Token layer. This is the only file where raw colour values are allowed: every
  * component reads a token utility, so a theme swap is a value change here and nowhere
  * else. Both theme blocks must define the same names - `tests/design-tokens.test.ts`
@@ -216,8 +228,7 @@ body {
   ::view-transition-old(*),
   ::view-transition-new(*),
   ::view-transition-group(*) {
-    animation-duration: 0s !important;
-    animation-delay: 0s !important;
+    animation: none !important;
   }
 }
 

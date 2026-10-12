@@ -20,7 +20,7 @@ import { Reveal } from "@/components/reveal";
 import { SpotlightCard } from "@/components/spotlight-card";
 
 export const metadata: Metadata = {
-  title: "Homelab — Francesco Tenace",
+  title: "Homelab | Francesco Tenace",
   description:
     "Compose stacks and host services running on my Odroid HC4 homelab.",
 };
