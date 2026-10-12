@@ -1,4 +1,8 @@
-import { TRANSPARENT, type SpriteSheet } from "@/sprites/sheet";
+/*
+ * Relative `.ts` specifier, as in `png.ts`: `scripts/build-sprite.ts` loads this file under
+ * bare Node, which resolves neither the `@/` alias nor an extensionless relative import.
+ */
+import { TRANSPARENT, type SpriteSheet } from "./sheet.ts";
 
 /**
  * The trainer sprite: eight colours plus transparency, two authored frames, and three
