@@ -427,15 +427,20 @@ Each slice ends green on all four commands and is reviewable on its own.
   recorded rather than hidden.
 - **The sprite is code-authored.** Honest limit: clean and readable, not Emerald-grade.
   The upgrade path in 5.2 is a one-file swap, and external art in a separate task remains
-  the route to the highest quality.
+  the route to the highest quality. **Shipped** in `aacaf28..1bc3989`: the grids in
+  `src/sprites/`, `scripts/build-sprite.ts` and the six generated PNGs.
 - **A scene hero still costs something.** It is heavier than a text hero: more DOM, more
   paint, and a sprite to keep pixel-crisp. The mitigation is that it fits the viewport, the
   content below is unaffected, and the starfield animates only transform and opacity. The
   gate version was rejected for SEO, accessibility and one-click recruiter access.
+  **Shipped** in `aacaf28..1bc3989`; the measured desktop and phone heights are in section
+  6.1.
 - **Dual mode doubles colour QA.** Accepted by the owner, and it is why section 10 has a
-  both-themes gate.
+  both-themes gate. **Shipped** in `aacaf28..1bc3989`; the audit record below records every
+  route opened in both themes.
 - **`/cv` breaks three pinned assertions** in `tests/metadata-routes.test.ts`. Deliberate,
-  updated in the same commit, and recorded in `docs/TROUBLESHOOTING.md`.
+  updated in the same commit, and recorded in `docs/TROUBLESHOOTING.md`. **Shipped** in
+  `aacaf28..1bc3989`: the test now expects six static routes with `/cv` at priority 0.9.
 - **`output: "export"` plus an experimental flag.** View transitions are only kept if
   check 1 in section 10 passes.
 
@@ -452,7 +457,8 @@ Each slice ends green on all four commands and is reviewable on its own.
 - **Em-dash sweep:** zero in `src/app` and `src/components` after fixing the two route
   titles (`Music — Francesco Tenace` and `Homelab — Francesco Tenace` become `... | ...`).
   The three hits in `src/lib/posts.ts` are JSDoc, not user-visible, and are untouched; the
-  three published posts keep theirs, as agreed.
+  three published posts keep theirs, as agreed. `tests/source-prose.test.ts` pins the wider
+  rule — `src/app`, `src/components` and `src/lib`, comments excluded.
 - **Reduced motion:** with the preference emulated, `document.getAnimations().length === 0`
   on `/`, `/cv/`, `/homelab/`, `/blog/<slug>/`, `/music/` and `/gallery/`, against 8 live
   animations on `/` without it. That covers the starfield, both sprite strips, the reveals,
@@ -466,19 +472,21 @@ Each slice ends green on all four commands and is reviewable on its own.
 - **View transitions:** enabled and kept. The export builds with the flag on, the transition
   plays on the exported site, and the persistent header is frozen for its duration; the
   evidence and the exact removal steps are in `docs/TROUBLESHOOTING.md`.
-- **Three-equal-card rows:** none ship. The two `md:grid-cols-3` tracks that do hold three
-  cells are the homelab `STACK` strip (dt/dd facts grouped by hairlines, no card chrome) and
-  the six-cell homelab services grid; the CV skills bento and the interests bento each carry
-  five cells with an explicit `md:col-span-2`.
+- **Three-equal-card rows:** none ship. The homelab `STACK` strip is an `md:grid-cols-3`
+  track of three dt/dd facts grouped by hairlines with no card chrome; the six-cell homelab
+  services grid is `md:grid-cols-2 lg:grid-cols-3`; the CV skills bento and the interests
+  bento each carry five cells with an explicit `md:col-span-2`.
 - **Other mechanical checks:** no scroll listeners; no Lucide imports (the icon family is
   Phosphor plus Simple Icons in `brand-icon.tsx`); no hand-rolled `<path d=` outside
-  `brand-icon.tsx`; no hardcoded colour outside the token block in `globals.css`, the
-  `themeColor` metadata in `layout.tsx`, and the two Satori OpenGraph handlers, which cannot
-  read CSS custom properties.
-- **OpenGraph cards keep the pre-redesign palette.** The two `opengraph-image.tsx` handlers
-  paint the old slate/emerald hexes because Satori cannot read `--surface`/`--accent`.
-  Restyling them means hardcoding the new token values in a second place; the redesign left
-  them as they were. Recorded, not changed.
+  `brand-icon.tsx`; no hardcoded colour in a component outside the token block in
+  `globals.css`, the sprite pixel palette in `src/sprites/trainer.ts`, the `themeColor`
+  metadata in `layout.tsx`, and the two Satori OpenGraph handlers, which cannot read CSS
+  custom properties.
+- **OpenGraph cards brought onto the new palette.** The two `opengraph-image.tsx` handlers
+  paint literal hex because Satori cannot read `--surface`/`--accent`; their slate and
+  emerald values were remapped to the token layer (`#0f1116`, `#08090b`, `#050608`,
+  `#e8eaed`, `#8b929c`, `#3fbf94`, `#fdfcfa`) with the composition and typography unchanged,
+  so no pre-redesign hex survives in either file.
 
 ## 13. Waiting on the owner
 

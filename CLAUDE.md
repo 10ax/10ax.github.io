@@ -70,11 +70,13 @@ step, not a gate: run it after editing a grid and commit the PNGs it writes.
   `src/app/globals.css` (`128px` for `idle`/`interact`, `256px` for `walk`) with it.
 - **Colour lives in the token block.** Every colour in a component is a token utility; the
   only raw values are the `:root` / `[data-theme]` blocks in `src/app/globals.css`, the
-  `themeColor` metadata in `layout.tsx`, and the two Satori OpenGraph handlers, which cannot
-  read custom properties. `tests/design-tokens.test.ts` keeps the two themes in parity.
+  sprite pixel palette in `src/sprites/trainer.ts`, the `themeColor` metadata in
+  `layout.tsx`, and the two Satori OpenGraph handlers, which cannot read custom properties.
+  `tests/design-tokens.test.ts` keeps the two themes in parity.
 - **No em-dash or en-dash in a user-visible string.** The design brief bans them as template
   chrome; the three published posts are the recorded exception. `tests/source-prose.test.ts`
-  enforces it over `src/app` and `src/components`.
+  enforces it over `src/app`, `src/components` and `src/lib`, ignoring comments (the JSDoc in
+  `src/lib/posts.ts` uses them on purpose).
 
 ## Conventions visible in the code
 

@@ -34,15 +34,15 @@ export default async function Image({
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "80px",
-          background: "linear-gradient(135deg, #0f172a 0%, #020617 100%)",
-          color: "#e2e8f0",
+          background: "linear-gradient(135deg, #0f1116 0%, #08090b 100%)",
+          color: "#e8eaed",
           fontFamily: "system-ui, sans-serif",
         }}
       >
         <div
           style={{
             display: "flex",
-            color: "#34d399",
+            color: "#3fbf94",
             fontSize: 28,
             fontFamily: "monospace",
           }}
@@ -54,7 +54,7 @@ export default async function Image({
             style={{
               fontSize: 72,
               fontWeight: 700,
-              color: "#ffffff",
+              color: "#fdfcfa",
               letterSpacing: "-0.02em",
               lineHeight: 1.1,
             }}
@@ -69,11 +69,11 @@ export default async function Image({
                   style={{
                     fontSize: 22,
                     fontFamily: "monospace",
-                    color: "#cbd5e1",
+                    color: "#e8eaed",
                     padding: "6px 14px",
-                    border: "1px solid #334155",
+                    border: "1px solid #0f1116",
                     borderRadius: 8,
-                    background: "#1e293b",
+                    background: "#050608",
                   }}
                 >
                   #{t}
@@ -88,11 +88,11 @@ export default async function Image({
             justifyContent: "space-between",
             alignItems: "center",
             fontSize: 22,
-            color: "#94a3b8",
+            color: "#8b929c",
           }}
         >
           <span>Francesco Tenace · Blog</span>
-          <span style={{ color: "#34d399", fontFamily: "monospace" }}>{date}</span>
+          <span style={{ color: "#3fbf94", fontFamily: "monospace" }}>{date}</span>
         </div>
       </div>
     ),

@@ -341,8 +341,9 @@ a predictable static export is the invariant this feature was conditional on.
 
 ## Known issues
 
-Things that are broken, stale, or half-finished as of `cd2f189`. None of them were fixed
-while writing this guide; they are recorded so the next person does not rediscover them.
+Things that are broken, stale, or half-finished, recorded so the next person does not
+rediscover them. The 2026-10-12 redesign replaced the entries it resolved with what
+remains.
 
 - **`DEPLOY.md` documents the wrong names for the Last.fm variables.** Step 3 of its
   setup table asks for a *variable* `LASTFM_USER` and a *secret* `LASTFM_API_KEY`. Commit
@@ -367,19 +368,17 @@ while writing this guide; they are recorded so the next person does not rediscov
   every URL without the trailing slash. Pinned by `tests/metadata-routes.test.ts`. Cosmetic
   — crawlers follow the redirect — but it is a redirect on every entry.
 
-- **Two buttons on the home page go nowhere.** In `src/app/page.tsx`, the "Download CV"
-  button and the location contact pill are both `href="#"`. There is no CV file anywhere in
-  `public/`.
+- **The CV has no download link yet.** The CV lives at `/cv`, and the hub's "View CV" link
+  points at it, but no PDF exists in `public/`, so the deliberate shape today is a route with
+  no download button rather than the `href="#"` placeholder the pre-redesign home page
+  shipped. The download returns when the owner supplies the file.
 
-- **The gallery and the homelab rack photos are stock logos, not real images.**
-  `src/app/gallery/page.tsx` lists `/next.svg` and `/vercel.svg` three times, and
-  `src/app/homelab/page.tsx` lists the same two files as "rack photos". Both files carry a
-  comment saying to drop real images into `public/gallery/` and `public/homelab/`; neither
-  directory exists. The gallery page's own description text tells visitors this.
-
-- **`src/app/gallery/page.tsx` still references the pre-`src/` path.** Its description
-  tells the reader to edit `app/gallery/page.tsx`; the file has lived at
-  `src/app/gallery/page.tsx` since the first commit.
+- **The gallery and homelab photographs are seeded placeholders.** `src/app/gallery/page.tsx`
+  and the "Rack photos" section of `src/app/homelab/page.tsx` render placeholder photographs
+  hot-linked from `picsum.photos` (plus `public/homelab/rack-placeholder.svg`), awaiting the
+  owner's real files — the redesign's two outstanding owner-supplied asset sets. The comment
+  above each array says to drop the files into `public/gallery/` and `public/homelab/`;
+  `public/gallery/` does not exist yet.
 
 - **Nothing tests the React components.** `src/components/track-list.tsx` holds real logic
   worth pinning — `pickImage` prefers `extralarge`/`large` and otherwise takes the last

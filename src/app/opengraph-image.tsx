@@ -18,15 +18,15 @@ export default async function Image() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "80px",
-          background: "linear-gradient(135deg, #0f172a 0%, #020617 100%)",
-          color: "#e2e8f0",
+          background: "linear-gradient(135deg, #0f1116 0%, #08090b 100%)",
+          color: "#e8eaed",
           fontFamily: "system-ui, sans-serif",
         }}
       >
         <div
           style={{
             display: "flex",
-            color: "#34d399",
+            color: "#3fbf94",
             fontSize: 28,
             fontFamily: "monospace",
           }}
@@ -38,14 +38,14 @@ export default async function Image() {
             style={{
               fontSize: 96,
               fontWeight: 700,
-              color: "#ffffff",
+              color: "#fdfcfa",
               letterSpacing: "-0.03em",
               lineHeight: 1,
             }}
           >
             Francesco Tenace
           </div>
-          <div style={{ fontSize: 44, color: "#cbd5e1" }}>
+          <div style={{ fontSize: 44, color: "#e8eaed" }}>
             Full-stack Developer
           </div>
         </div>
@@ -55,11 +55,11 @@ export default async function Image() {
             justifyContent: "space-between",
             alignItems: "center",
             fontSize: 22,
-            color: "#94a3b8",
+            color: "#8b929c",
           }}
         >
           <span>Java · .NET · Kubernetes · DevOps</span>
-          <span style={{ color: "#34d399", fontFamily: "monospace" }}>~/ft</span>
+          <span style={{ color: "#3fbf94", fontFamily: "monospace" }}>~/ft</span>
         </div>
       </div>
     ),

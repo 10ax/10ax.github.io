@@ -93,8 +93,9 @@ mistake becomes a failed deploy, a wrong link or a broken sprite:
 - `tests/theme.test.ts`, `tests/nav.test.ts`, `tests/cv-data.test.ts` and
   `tests/icons.test.ts` — the pre-paint script, the six nav links and their order, the CV
   facts after the move to `/cv`, and the icon family.
-- `tests/source-prose.test.ts` — the brief's prose rule: no em-dash or en-dash in `src/app`
-  or `src/components`.
+- `tests/source-prose.test.ts` — the brief's prose rule: no em-dash or en-dash in a
+  user-visible string anywhere under `src/app`, `src/components` or `src/lib` (comments are
+  excluded; `src/lib/posts.ts` documents with them in JSDoc).
 
 There are no component tests and no network tests; `docs/TROUBLESHOOTING.md` explains why
 under "Known issues".
