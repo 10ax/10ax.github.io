@@ -20,7 +20,7 @@ export default async function BlogIndexPage() {
         title="Notes"
         description="Things I worked out the hard way, written down so the next attempt is shorter."
       />
-      <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-16 md:px-8">
         {!lead ? (
           <p className="text-ink-muted text-sm">No posts yet. Check back soon.</p>
         ) : (

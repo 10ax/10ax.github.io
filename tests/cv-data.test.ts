@@ -34,19 +34,40 @@ describe("CV_DATA", () => {
 
   it("keeps all eleven skills and their categories", () => {
     expect(CV_DATA.skills).toHaveLength(11);
-    expect(CV_DATA.skills.map((s) => s.name)).toContain("Docker/Kubernetes");
+    expect(CV_DATA.skills.map((s) => s.name)).toEqual([
+      "Java",
+      ".NET",
+      "JavaScript",
+      "TypeScript",
+      "Angular",
+      "Html/CSS",
+      "Docker/Kubernetes",
+      "GCP",
+      "AWS",
+      "Git",
+      "GNU+Linux",
+    ]);
     expect(new Set(CV_DATA.skills.map((s) => s.category))).toEqual(
       new Set(["Backend", "Frontend", "DevOps", "Cloud", "Tools"]),
     );
   });
 
   it("keeps the education and language facts", () => {
+    expect(CV_DATA.education.degree).toBe(
+      "Bachelor’s Degree in Computer and Automation Engineering",
+    );
     expect(CV_DATA.education.institution).toBe("Polytechnic University of Bari");
     expect(CV_DATA.education.period).toBe("2017 - 2020");
     expect(CV_DATA.profile.languages).toEqual([
       { name: "Italian", level: "Native" },
       { name: "English", level: "C1 Level" },
     ]);
+  });
+
+  it("keeps the hobbies sentence", () => {
+    expect(CV_DATA.hobbies).toBe(
+      "Playing guitar and composing music. Retro-gaming, Sci-fi literature, and cooking. Self-hosting a Proxmox/Docker home lab for personal services and CI/CD testing.",
+    );
   });
 
   it("contains no em-dashes, which are banned from user-visible strings", () => {

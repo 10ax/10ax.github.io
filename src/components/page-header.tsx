@@ -14,7 +14,7 @@ export function PageHeader({
   description?: string;
 }) {
   return (
-    <header className="border-line border-b">
+    <div className="border-line border-b">
       <div className="mx-auto w-full max-w-[1400px] px-5 py-16 md:px-8 md:py-20">
         {eyebrow && (
           <p className="mb-3">
@@ -30,6 +30,6 @@ export function PageHeader({
           </p>
         )}
       </div>
-    </header>
+    </div>
   );
 }

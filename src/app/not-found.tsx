@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main id="main" className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-20 md:px-8">
+    <main id="main" tabIndex={-1} className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-20 md:px-8">
       <PixelLabel>404</PixelLabel>
       <h1 className="font-display text-ink mt-3 max-w-[20ch] text-4xl leading-[1.05] font-semibold tracking-tight md:text-5xl">
         Nothing is hosted at this address

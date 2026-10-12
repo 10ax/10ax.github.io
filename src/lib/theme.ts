@@ -21,5 +21,5 @@ export function resolveTheme(stored: string | null, systemPrefersDark: boolean):
  * designed surface. `tests/theme.test.ts` pins those properties.
  */
 export function themeInitScript(): string {
-  return '(function(){try{var k="ft-theme";var s=localStorage.getItem(k);var t=(s==="dark"||s==="light")?s:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="dark";}})()';
+  return '(function(){document.documentElement.classList.add("js");try{var k="ft-theme";var s=localStorage.getItem(k);var t=(s==="dark"||s==="light")?s:(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme="dark";}})()';
 }

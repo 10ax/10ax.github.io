@@ -105,6 +105,7 @@ One strategy, one accent, locked page-wide.
 | `--accent` | `#3fbf94` | `#106b50` | the single accent, emerald family, desaturated |
 | `--accent-ink` | `#04231a` | `#fdfcfa` | text on an accent fill |
 | `--star` | `rgb(255 255 255 / .85)` | `rgb(8 9 11 / .55)` | starfield particles |
+| `--scrim` | `rgb(8 9 11 / .8)` | `rgb(8 9 11 / .55)` | lightbox scrim; solid under reduced transparency |
 
 Rules: no purple, no gradient text, no neon outer glow, no pure black, no pure white, no
 second accent, tinted shadows only (`box-shadow` carries the surface hue, never flat
@@ -438,6 +439,12 @@ Each slice ends green on all four commands and is reviewable on its own.
 - **Dual mode doubles colour QA.** Accepted by the owner, and it is why section 10 has a
   both-themes gate. **Shipped** in `aacaf28..1bc3989`; the audit record below records every
   route opened in both themes.
+- **`/music` ships the dense list, not the now-playing card and mosaic.** The spec's §6.6
+  composition named a now-playing card and an album-art mosaic above the scrobble list.
+  Only the list shipped, with per-row album art. The list already carries the art, so the
+  mosaic would show the same covers a second time and the card duplicates the list's own
+  now-playing row; the dense list is the site's honest shape for a live feed. Recorded as
+  an accepted deviation rather than quietly dropped.
 - **`/cv` breaks three pinned assertions** in `tests/metadata-routes.test.ts`. Deliberate,
   updated in the same commit, and recorded in `docs/TROUBLESHOOTING.md`. **Shipped** in
   `aacaf28..1bc3989`: the test now expects six static routes with `/cv` at priority 0.9.
@@ -472,10 +479,13 @@ Each slice ends green on all four commands and is reviewable on its own.
 - **View transitions:** enabled and kept. The export builds with the flag on, the transition
   plays on the exported site, and the persistent header is frozen for its duration; the
   evidence and the exact removal steps are in `docs/TROUBLESHOOTING.md`.
-- **Three-equal-card rows:** none ship. The homelab `STACK` strip is an `md:grid-cols-3`
-  track of three dt/dd facts grouped by hairlines with no card chrome; the six-cell homelab
-  services grid is `md:grid-cols-2 lg:grid-cols-3`; the CV skills bento and the interests
-  bento each carry five cells with an explicit `md:col-span-2`.
+- **Three-equal-card rows:** none ship. What the rule bans is three identical **cards**
+  presented as a feature row; neither site row is that. The homelab `STACK` strip is an
+  `md:grid-cols-3` track of three dt/dd facts grouped by hairlines with no card chrome and
+  no feature framing; the six-cell homelab services grid is `md:grid-cols-2 lg:grid-cols-3`
+  and is a complete set of six, not a feature row of three. The CV skills bento and the
+  interests bento each carry five cells with an explicit `md:col-span-2`, so neither is a
+  row of three identically-chromed cells either.
 - **Other mechanical checks:** no scroll listeners; no Lucide imports (the icon family is
   Phosphor plus Simple Icons in `brand-icon.tsx`); no hand-rolled `<path d=` outside
   `brand-icon.tsx`; no hardcoded colour in a component outside the token block in

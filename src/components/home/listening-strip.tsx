@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
 
 export type ListeningItem = {
@@ -20,9 +22,18 @@ export function ListeningStrip({ tracks }: { tracks: ListeningItem[] }) {
     <section className="border-line border-t">
       <div className="mx-auto w-full max-w-[1400px] px-5 py-14 md:px-8">
         <Reveal>
-          <h2 className="font-display text-ink text-2xl font-semibold tracking-tight">
-            Recently played
-          </h2>
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-ink text-2xl font-semibold tracking-tight">
+              Recently played
+            </h2>
+            <Link
+              href="/music"
+              className="focus-ring text-accent inline-flex items-center gap-1.5 text-sm font-semibold"
+            >
+              All listening
+              <ArrowUpRight size={16} weight="regular" aria-hidden />
+            </Link>
+          </div>
           <ul className="mt-6 grid gap-4 sm:grid-cols-2">
             {tracks.slice(0, 2).map((track, index) => (
               <li key={`${track.url}-${index}`}>

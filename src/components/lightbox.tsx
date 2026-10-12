@@ -89,7 +89,7 @@ export function Lightbox({
   if (!photo) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
+    <div className="lightbox-scrim fixed inset-0 z-[70] flex items-center justify-center bg-scrim p-4 backdrop-blur-sm">
       <div
         ref={dialogRef}
         role="dialog"

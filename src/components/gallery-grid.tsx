@@ -36,7 +36,7 @@ export function GalleryGrid({ photos }: { photos: LightboxPhoto[] }) {
                 height={photo.height}
                 unoptimized
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.02]"
+                className="h-auto w-full transition-transform duration-500 group-hover:scale-[1.02] motion-reduce:transition-none"
               />
             </button>
           </li>

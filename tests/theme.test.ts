@@ -26,6 +26,13 @@ describe("themeInitScript", () => {
     expect(script).toContain(`dataset.${THEME_ATTRIBUTE.replace("data-", "")}`);
   });
 
+  it("marks that scripting is available, before it assigns the theme", () => {
+    expect(script).toContain('classList.add("js")');
+    expect(script.indexOf('classList.add("js")')).toBeLessThan(
+      script.indexOf("dataset.theme=t"),
+    );
+  });
+
   it("defaults to dark when storage is unavailable", () => {
     expect(script).toContain("catch");
     expect(script).toContain('"dark"');

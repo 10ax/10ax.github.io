@@ -7,6 +7,11 @@ function getIcon(slug: string): SimpleIcon | undefined {
   return (si as unknown as Record<string, SimpleIcon | undefined>)[key];
 }
 
+/** Whether a Simple Icons slug resolves, so a caller can fall back to another glyph. */
+export function hasBrandIcon(slug: string): boolean {
+  return getIcon(slug) !== undefined;
+}
+
 export function BrandIcon({
   slug,
   className,

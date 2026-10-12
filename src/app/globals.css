@@ -31,6 +31,7 @@
   --accent: #106b50;
   --accent-ink: #fdfcfa;
   --star: rgb(8 9 11 / 0.55);
+  --scrim: rgb(8 9 11 / 0.55);
 }
 
 /* Order matters: this block must come BEFORE the `[data-theme]` blocks below.
@@ -52,6 +53,7 @@
     --accent: #3fbf94;
     --accent-ink: #04231a;
     --star: rgb(255 255 255 / 0.85);
+    --scrim: rgb(8 9 11 / 0.8);
   }
 }
 
@@ -67,6 +69,7 @@
   --accent: #106b50;
   --accent-ink: #fdfcfa;
   --star: rgb(8 9 11 / 0.55);
+  --scrim: rgb(8 9 11 / 0.55);
 }
 
 [data-theme="dark"] {
@@ -81,6 +84,7 @@
   --accent: #3fbf94;
   --accent-ink: #04231a;
   --star: rgb(255 255 255 / 0.85);
+  --scrim: rgb(8 9 11 / 0.8);
 }
 
 @theme inline {
@@ -94,6 +98,7 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-star: var(--star);
+  --color-scrim: var(--scrim);
 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
@@ -153,6 +158,36 @@ body {
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Motion renders its `initial` state into the server HTML, so a visitor without
+ * JavaScript would otherwise see an empty page below the hero. The pre-paint script marks
+ * `<html class="js">`; without it, every revealed element is simply shown. `!important` is
+ * required because motion writes the hidden state as an inline style.
+ */
+html:not(.js) .reveal {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/*
+ * Reduced transparency. A frosted surface is a transparency effect whether or not it
+ * moves, so honour the preference by dropping the blur and painting a solid fill behind
+ * the two blurred surfaces: the sticky header (over page content) and the lightbox scrim
+ * (over the gallery). The scrim goes fully opaque rather than merely unblurred, because a
+ * see-through scrim over a photo is still a transparency effect.
+ */
+@media (prefers-reduced-transparency: reduce) {
+  .site-header {
+    background: var(--surface);
+    backdrop-filter: none;
+  }
+
+  .lightbox-scrim {
+    background: rgb(8 9 11);
+    backdrop-filter: none;
+  }
 }
 
 /*

@@ -15,7 +15,7 @@ import {
   ShieldCheck,
 } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
-import { BrandIcon } from "@/components/brand-icon";
+import { BrandIcon, hasBrandIcon } from "@/components/brand-icon";
 import { Reveal } from "@/components/reveal";
 import { SpotlightCard } from "@/components/spotlight-card";
 
@@ -162,7 +162,7 @@ export default function HomelabPage() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <span className="border-line bg-sunken flex h-9 w-9 shrink-0 items-center justify-center rounded-chip border">
-                          {service.iconSlug ? (
+                          {service.iconSlug && hasBrandIcon(service.iconSlug) ? (
                             <BrandIcon
                               slug={service.iconSlug}
                               useBrandColor={false}

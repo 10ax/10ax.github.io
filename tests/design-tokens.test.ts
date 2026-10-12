@@ -61,6 +61,10 @@ describe("design tokens", () => {
     expect(css).toMatch(/@media\s*\(prefers-color-scheme:\s*dark\)/);
   });
 
+  it("shows the revealed content when the pre-paint script has not run", () => {
+    expect(css).toContain("html:not(.js) .reveal");
+  });
+
   it("disables smooth scrolling when reduced motion is requested", () => {
     expect(css).toMatch(/prefers-reduced-motion:\s*reduce/);
   });

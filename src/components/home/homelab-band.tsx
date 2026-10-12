@@ -33,13 +33,15 @@ export function HomelabBand() {
           </Reveal>
           <dl className="mt-8 flex flex-col gap-5">
             {FACTS.map((fact, index) => (
-              <Reveal key={fact.label} delay={0.1 + index * 0.05}>
-                <div className="border-line border-l-2 pl-4">
-                  <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">
-                    {fact.label}
-                  </dt>
-                  <dd className="text-ink mt-1 text-sm leading-relaxed">{fact.value}</dd>
-                </div>
+              <Reveal
+                key={fact.label}
+                delay={0.1 + index * 0.05}
+                className="border-line border-l-2 pl-4"
+              >
+                <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">
+                  {fact.label}
+                </dt>
+                <dd className="text-ink mt-1 text-sm leading-relaxed">{fact.value}</dd>
               </Reveal>
             ))}
           </dl>

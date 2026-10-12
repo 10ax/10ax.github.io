@@ -14,7 +14,7 @@ export function NowStrip() {
           What I am doing right now
         </h2>
       </Reveal>
-      <dl className="mt-10 grid gap-8 md:grid-cols-[1.4fr_1fr]">
+      <div className="mt-10 grid gap-8 md:grid-cols-[1.4fr_1fr]">
         <Reveal delay={0.05}>
           <p className="text-ink-muted max-w-[65ch] text-base leading-relaxed text-pretty">
             Full-stack developer by trade, Linux tinkerer by habit. I build distributed
@@ -22,19 +22,21 @@ export function NowStrip() {
             reason anyone climbs a hill: to see whether it holds.
           </p>
         </Reveal>
-        <div className="flex flex-col gap-6">
+        <dl className="flex flex-col gap-6">
           {FACTS.map((fact, index) => (
-            <Reveal key={fact.label} delay={0.1 + index * 0.05}>
-              <div className="border-line border-l-2 pl-4">
-                <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">
-                  {fact.label}
-                </dt>
-                <dd className="text-ink mt-1 text-sm leading-relaxed">{fact.value}</dd>
-              </div>
+            <Reveal
+              key={fact.label}
+              delay={0.1 + index * 0.05}
+              className="border-line border-l-2 pl-4"
+            >
+              <dt className="text-ink-muted font-mono text-xs tracking-wide uppercase">
+                {fact.label}
+              </dt>
+              <dd className="text-ink mt-1 text-sm leading-relaxed">{fact.value}</dd>
             </Reveal>
           ))}
-        </div>
-      </dl>
+        </dl>
+      </div>
     </section>
   );
 }

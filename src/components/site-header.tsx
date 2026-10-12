@@ -3,21 +3,23 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { List, X } from "@phosphor-icons/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NAV_LINKS, isActiveHref } from "@/lib/nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 /**
- * One line at desktop, an off-canvas drawer below `md`. The active link is marked with
- * `aria-current`, which is also what the styling keys off, so the visual state and the
- * announced state cannot drift apart.
+ * One line at desktop; below `md` the same header expands in flow to reveal a stacked
+ * menu (not an overlay drawer), so it never covers the page and needs no scroll lock. The
+ * active link is marked with `aria-current`, which is also what the styling keys off, so
+ * the visual state and the announced state cannot drift apart.
  *
- * The drawer remembers the pathname it was opened at rather than a bare boolean. When the
+ * The panel remembers the pathname it was opened at rather than a bare boolean. When the
  * path changes, the remembered path is reset during render (the documented React pattern
- * for resetting state when an input changes), so the drawer closes on any navigation -
- * a drawer link, the brand, and back/forward alike. That reset is a guarded render-phase
+ * for resetting state when an input changes), so the panel closes on any navigation -
+ * a menu link, the brand, and back/forward alike. That reset is a guarded render-phase
  * state adjustment rather than a `setOpen(false)` effect, which would trip this repo's
- * `react-hooks/set-state-in-effect` rule.
+ * `react-hooks/set-state-in-effect` rule. Escape closes it too, handled in an effect so
+ * the key is only listened for while the panel is open.
  */
 export function SiteHeader() {
   const pathname = usePathname();
@@ -29,10 +31,19 @@ export function SiteHeader() {
   }
   const open = openAt !== null && openAt === pathname;
 
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpenAt(null);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
   return (
     <header
       style={{ viewTransitionName: "site-header" }}
-      className="border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur"
+      className="site-header border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur"
     >
       <div className="mx-auto flex h-16 w-full max-w-[1400px] items-center justify-between gap-4 px-5 md:px-8">
         <Link

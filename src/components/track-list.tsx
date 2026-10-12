@@ -52,10 +52,10 @@ async function fetchPage(page: number): Promise<LastFmTrack[]> {
 function SkeletonRow() {
   return (
     <li className="border-line flex items-center gap-3 border-b py-3">
-      <span className="bg-sunken border-line h-12 w-12 shrink-0 animate-pulse rounded-chip border" />
+      <span className="bg-sunken border-line h-12 w-12 shrink-0 animate-pulse rounded-chip border motion-reduce:animate-none" />
       <span className="flex-1">
-        <span className="bg-sunken block h-3.5 w-3/5 animate-pulse rounded" />
-        <span className="bg-sunken mt-2 block h-3 w-2/5 animate-pulse rounded" />
+        <span className="bg-sunken block h-3.5 w-3/5 animate-pulse rounded motion-reduce:animate-none" />
+        <span className="bg-sunken mt-2 block h-3 w-2/5 animate-pulse rounded motion-reduce:animate-none" />
       </span>
     </li>
   );

@@ -29,6 +29,7 @@ export function HubMenu({ className }: { className?: string }) {
       {NAV_LINKS.map((link, index) => (
         <motion.li
           key={link.href}
+          className="reveal"
           initial={reduce ? false : { opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
