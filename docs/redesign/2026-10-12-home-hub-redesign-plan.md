@@ -863,7 +863,7 @@ Expected: PASS, 8 tests.
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { List, X } from "@phosphor-icons/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NAV_LINKS, isActiveHref } from "@/lib/nav";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -871,14 +871,16 @@ import { ThemeToggle } from "@/components/theme-toggle";
  * One line at desktop, an off-canvas drawer below `md`. The active link is marked with
  * `aria-current`, which is also what the styling keys off, so the visual state and the
  * announced state cannot drift apart.
+ *
+ * The drawer remembers the pathname it was opened at rather than a bare boolean, so any
+ * navigation (a drawer link, the brand, back/forward) closes it with no effect: the
+ * remembered path simply stops matching. A `setOpen(false)` effect would trip this repo's
+ * `react-hooks/set-state-in-effect` rule, which is the same trap Task 2's toggle hit.
  */
 export function SiteHeader() {
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt !== null && openAt === pathname;
 
   return (
     <header className="border-line bg-surface/85 sticky top-0 z-40 border-b backdrop-blur">
@@ -919,7 +921,7 @@ export function SiteHeader() {
           <ThemeToggle />
           <button
             type="button"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setOpenAt(open ? null : pathname)}
             aria-expanded={open}
             aria-controls="site-drawer"
             aria-label={open ? "Close menu" : "Open menu"}
