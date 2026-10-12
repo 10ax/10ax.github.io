@@ -291,3 +291,49 @@ code[data-theme*=" "] span {
     color: var(--shiki-dark);
   }
 }
+
+/*
+ * Forward travel. Each star is placed at the vanishing point and pushed outward along its own
+ * `--dx`/`--dy` vector, growing as it passes. Distances are computed once in the component's
+ * fixed-seed table, so the server and the client agree; the keyframes only interpolate.
+ *
+ * Negative `animation-delay` values (also from the table) mean the field is already in flight
+ * on the first frame rather than starting as an empty centre.
+ */
+@keyframes star-warp {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.3);
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 0.85;
+  }
+
+  78% {
+    opacity: 0.85;
+  }
+
+  100% {
+    transform: translate3d(var(--dx, 0), var(--dy, 0), 0) scale(1.7);
+    opacity: 0;
+  }
+}
+
+.star-warp {
+  animation: star-warp var(--dur, 3.2s) linear infinite;
+  animation-delay: var(--delay, 0s);
+  will-change: transform, opacity;
+}
+
+/*
+ * Reduced motion: no travel at all. The streaming layer is removed rather than frozen, because
+ * sixty-four stars parked at the centre would read as a smudge; the far gradient layers stay
+ * and serve as a static field.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .star-warp {
+    display: none;
+  }
+}
+

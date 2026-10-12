@@ -4,6 +4,7 @@ import { Archivo, Geist, Geist_Mono, Silkscreen } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { Starfield } from "@/components/scene/starfield";
 import { SkipLink } from "@/components/skip-link";
 import { getSiteUrlObject } from "@/lib/site-url";
 import { themeInitScript } from "@/lib/theme";
@@ -90,6 +91,7 @@ export default function RootLayout({
         className="bg-surface text-ink flex min-h-full flex-col font-sans"
         suppressHydrationWarning
       >
+        <Starfield />
         <div className="grain" aria-hidden="true" />
         <SkipLink />
         <SiteHeader />
