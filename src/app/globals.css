@@ -21,6 +21,28 @@
   --star: rgb(8 9 11 / 0.55);
 }
 
+/* Order matters: this block must come BEFORE the `[data-theme]` blocks below.
+   `:root` and `[data-theme="..."]` both have specificity (0,1,0), so whichever comes
+   last in source wins. The system preference is only the fallback for a visitor who has
+   not chosen; an explicit `data-theme` set by the toggle must beat it. With this block
+   first, `[data-theme="light"]` wins on a system-dark machine, which is the whole point
+   of the toggle. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --surface: #08090b;
+    --panel: #0f1116;
+    --sunken: #050608;
+    --line: rgb(255 255 255 / 0.08);
+    --line-strong: rgb(255 255 255 / 0.16);
+    --ink: #e8eaed;
+    --ink-muted: #8b929c;
+    --accent: #3fbf94;
+    --accent-ink: #04231a;
+    --star: rgb(255 255 255 / 0.85);
+  }
+}
+
 [data-theme="light"] {
   color-scheme: light;
   --surface: #f7f7f5;
@@ -47,23 +69,6 @@
   --accent: #3fbf94;
   --accent-ink: #04231a;
   --star: rgb(255 255 255 / 0.85);
-}
-
-/* Before the pre-paint script runs, follow the system preference. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --surface: #08090b;
-    --panel: #0f1116;
-    --sunken: #050608;
-    --line: rgb(255 255 255 / 0.08);
-    --line-strong: rgb(255 255 255 / 0.16);
-    --ink: #e8eaed;
-    --ink-muted: #8b929c;
-    --accent: #3fbf94;
-    --accent-ink: #04231a;
-    --star: rgb(255 255 255 / 0.85);
-  }
 }
 
 @theme inline {
