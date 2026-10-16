@@ -26,3 +26,7 @@ concurrency:
 jobs:
   ci:
     uses: 10ax/ci-common/.github/workflows/node.yml@v1
+    with:
+      # Node-only suite under v8 coverage; scope and thresholds (90) live in
+      # vitest.config.ts so they are visible and reviewable in the repo.
+      coverage: pnpm run test:coverage
