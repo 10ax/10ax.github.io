@@ -1,6 +1,13 @@
+import { fileURLToPath } from 'node:url';
+
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
+  resolve: {
+    // The `@/` alias lives in tsconfig paths; carry it into vite explicitly
+    // now that a vitest config file exists.
+    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
+  },
   test: {
     coverage: {
       // The suite is Node-only on purpose (no React rendering): it pins the
