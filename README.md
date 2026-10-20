@@ -52,7 +52,9 @@ src/lib/posts.ts            MDX loading and frontmatter parsing
 src/lib/site-url.ts         resolves the absolute origin used in all metadata
 src/lib/theme.ts            the pre-paint theme script, its storage key and attribute
 src/lib/nav.ts              the six nav links, shared by header, footer and drawer
-src/lib/cv-data.ts          the CV facts, imported by /cv rather than re-declared
+src/lib/cv-data.ts          the CV facts and the contact address, imported rather than re-declared
+src/lib/lastfm.ts           the Last.fm response types, request URL and image rule, shared
+                            by the hub, the music route and the client-side scroller
 src/sprites/                the pixel grids the sprite PNGs are generated from
 scripts/build-sprite.ts     `pnpm run build:sprite` — compiles the grids to public/sprites/
 tests/                      vitest suite (see below)

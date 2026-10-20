@@ -12,6 +12,7 @@ import { ListeningStrip, type ListeningItem } from "@/components/home/listening-
 import { ContactBand } from "@/components/home/contact-band";
 import { getAllPosts } from "@/lib/posts";
 import { CV_DATA } from "@/lib/cv-data";
+import { artistName, pickImage, recentTracksUrl, type RecentTracksResponse } from "@/lib/lastfm";
 
 export const metadata: Metadata = {
   title: "Francesco Tenace | Full-stack developer, Linux and long songs",
@@ -31,34 +32,16 @@ async function recentListening(): Promise<ListeningItem[]> {
   if (!key || !user) return FALLBACK_TRACKS;
 
   try {
-    const url = new URL("https://ws.audioscrobbler.com/2.0/");
-    url.searchParams.set("method", "user.getrecenttracks");
-    url.searchParams.set("user", user);
-    url.searchParams.set("api_key", key);
-    url.searchParams.set("format", "json");
-    url.searchParams.set("limit", "2");
-    const res = await fetch(url);
+    const res = await fetch(recentTracksUrl({ apiKey: key, user, limit: 2 }));
     if (!res.ok) return FALLBACK_TRACKS;
-    const data = (await res.json()) as {
-      recenttracks?: {
-        track?: {
-          name: string;
-          url: string;
-          artist: { "#text"?: string; name?: string };
-          image?: { size: string; "#text": string }[];
-        }[];
-      };
-    };
+    const data = (await res.json()) as RecentTracksResponse;
     const tracks = data.recenttracks?.track ?? [];
-    const mapped = tracks.map((track) => {
-      const large = track.image?.find((i) => i.size === "extralarge" || i.size === "large");
-      return {
-        name: track.name,
-        artist: track.artist["#text"] ?? track.artist.name ?? "Unknown",
-        url: track.url,
-        image: large?.["#text"] || undefined,
-      };
-    });
+    const mapped = tracks.map((track) => ({
+      name: track.name,
+      artist: artistName(track),
+      url: track.url,
+      image: pickImage(track.image) ?? undefined,
+    }));
     return mapped.length > 0 ? mapped : FALLBACK_TRACKS;
   } catch {
     return FALLBACK_TRACKS;

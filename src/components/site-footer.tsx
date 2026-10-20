@@ -1,7 +1,6 @@
 import { EnvelopeSimple, Rss } from "@phosphor-icons/react/dist/ssr";
+import { CONTACT_EMAIL } from "@/lib/cv-data";
 import { CONTACT_LABEL } from "@/lib/nav";
-
-const EMAIL = "ftenace98@gmail.com";
 
 export function SiteFooter() {
   return (
@@ -10,7 +9,7 @@ export function SiteFooter() {
         <p>© {new Date().getFullYear()} Francesco Tenace</p>
         <div className="flex items-center gap-5">
           <a
-            href={`mailto:${EMAIL}`}
+            href={`mailto:${CONTACT_EMAIL}`}
             className="focus-ring hover:text-ink inline-flex items-center gap-1.5 transition-colors"
           >
             <EnvelopeSimple size={14} weight="regular" aria-hidden />

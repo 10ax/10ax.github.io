@@ -26,13 +26,19 @@ export type CvData = {
   hobbies: string;
 };
 
+/**
+ * The one address the site publishes. The footer, the hub's contact band and the CV all
+ * read it from here, so the literal exists once.
+ */
+export const CONTACT_EMAIL = "ftenace98@gmail.com";
+
 /** The CV as published. Frozen: `tests/cv-data.test.ts` pins every fact in here. */
 export const CV_DATA: CvData = {
   profile: {
     name: "Francesco Tenace",
     title: "Full-stack Developer",
     location: "Avellino area, Italy",
-    email: "ftenace98@gmail.com",
+    email: CONTACT_EMAIL,
     phone: "+39 3886526207",
     summary:
       "Senior Full-stack Developer with 5+ years of experience in building scalable distributed systems. Specialist in Java/.NET ecosystems and DevOps automation.",

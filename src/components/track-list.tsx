@@ -3,16 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { MusicNotes, ArrowSquareOut } from "@phosphor-icons/react";
-
-export type LastFmImage = { size: string; "#text": string };
-export type LastFmTrack = {
-  name: string;
-  artist: { "#text"?: string; name?: string };
-  url: string;
-  image: LastFmImage[];
-  date?: { "#text": string };
-  "@attr"?: { nowplaying?: string };
-};
+import {
+  artistName,
+  pickImage,
+  recentTracksUrl,
+  type LastFmTrack,
+  type RecentTracksResponse,
+} from "@/lib/lastfm";
 
 const PAGE_SIZE = 50;
 const API_KEY = process.env.NEXT_PUBLIC_LASTFM_API_KEY;
@@ -22,30 +19,12 @@ function trackKey(t: LastFmTrack, page: number, i: number): string {
   return `${t.url}-${t.date?.["#text"] ?? "now"}-${page}-${i}`;
 }
 
-function artistName(t: LastFmTrack): string {
-  return t.artist["#text"] ?? t.artist.name ?? "Unknown";
-}
-
-function pickImage(images: LastFmImage[] | undefined): string | null {
-  if (!images?.length) return null;
-  const large = images.find((i) => i.size === "extralarge" || i.size === "large");
-  const url = (large ?? images[images.length - 1])["#text"];
-  return url || null;
-}
-
 async function fetchPage(page: number): Promise<LastFmTrack[]> {
   if (!API_KEY || !USER) return [];
-  const url = new URL("https://ws.audioscrobbler.com/2.0/");
-  url.searchParams.set("method", "user.getrecenttracks");
-  url.searchParams.set("user", USER);
-  url.searchParams.set("api_key", API_KEY);
-  url.searchParams.set("format", "json");
-  url.searchParams.set("limit", String(PAGE_SIZE));
-  url.searchParams.set("page", String(page));
-  const res = await fetch(url);
+  const res = await fetch(recentTracksUrl({ apiKey: API_KEY, user: USER, limit: PAGE_SIZE, page }));
   if (!res.ok) return [];
-  const data = await res.json();
-  return data?.recenttracks?.track ?? [];
+  const data = (await res.json()) as RecentTracksResponse;
+  return data.recenttracks?.track ?? [];
 }
 
 /** A skeleton row shaped like a real row, so loading looks like the content. */

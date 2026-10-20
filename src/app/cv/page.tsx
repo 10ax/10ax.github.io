@@ -34,7 +34,9 @@ export default function CvPage() {
     "@type": "Person",
     name: profile.name,
     jobTitle: profile.title,
+    description: profile.summary,
     email: `mailto:${profile.email}`,
+    telephone: profile.phone,
     address: {
       "@type": "PostalAddress",
       addressLocality: "Avellino",

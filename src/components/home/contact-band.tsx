@@ -1,8 +1,7 @@
 import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
 import { Reveal } from "@/components/reveal";
+import { CONTACT_EMAIL } from "@/lib/cv-data";
 import { CONTACT_LABEL } from "@/lib/nav";
-
-const EMAIL = "ftenace98@gmail.com";
 
 /**
  * The site's single contact call to action. The same label appears in the footer, which
@@ -17,7 +16,7 @@ export function ContactBand() {
             Say hello, or hire me
           </h2>
           <a
-            href={`mailto:${EMAIL}`}
+            href={`mailto:${CONTACT_EMAIL}`}
             className="focus-ring bg-accent text-accent-ink mt-8 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold"
           >
             <EnvelopeSimple size={16} weight="regular" aria-hidden />
