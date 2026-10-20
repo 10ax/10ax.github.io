@@ -28,7 +28,11 @@ export const CONTACT_LABEL = "Get in touch";
  * starts with the same letters (`/blogging` is not `/blog`).
  */
 export function isActiveHref(pathname: string, href: string): boolean {
-  const normalise = (p: string) => (p.length > 1 ? p.replace(/\/+$/, "") : p);
+  const normalise = (p: string) => {
+    let end = p.length;
+    while (end > 1 && p[end - 1] === "/") end -= 1;
+    return p.slice(0, end);
+  };
   const path = normalise(pathname);
   const target = normalise(href);
   if (target === "/") return path === "/";

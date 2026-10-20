@@ -35,14 +35,20 @@ export async function generateMetadata({
 const mdxComponents = {
   // The page owns the `h1`, so a mapped `h1` becomes an `h2`; the remaining levels are
   // unchanged, so the outline has no gaps.
-  h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
+  h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props}>
+      {children}
+    </h2>
   ),
-  h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props} />
+  h2: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h2 className="font-display text-ink mt-10 text-2xl font-semibold tracking-tight" {...props}>
+      {children}
+    </h2>
   ),
-  h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
-    <h3 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props} />
+  h3: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+    <h3 className="font-display text-ink mt-8 text-xl font-semibold tracking-tight" {...props}>
+      {children}
+    </h3>
   ),
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p className="text-ink-muted mt-4 max-w-[65ch] leading-relaxed" {...props} />
