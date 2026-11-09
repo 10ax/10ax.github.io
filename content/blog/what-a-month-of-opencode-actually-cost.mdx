@@ -1,0 +1,236 @@
+---
+title: What a month of OpenCode actually cost
+date: 2026-11-09
+description: I pay $10 a month for OpenCode Go. A 30-day query of the session database priced my usage at $33.29. Here is where the tokens went, the routing mistake that cost 46% of a five-hour budget, and what I changed.
+tags: [opencode, llm, tooling, token-economics]
+---
+
+I pay $10 a month for OpenCode Go. That buys a set of models with dollar-denominated
+allowances, and I had already split them into roles: a workhorse, an escalation model, a
+fan-out model. What I did not have was a measurement of where the tokens actually went.
+
+So I summed the `cost` column in `~/.local/share/opencode/opencode.db` over 30 days:
+**$33.29**. Not a bill, since the subscription is flat, but that much model time consumed
+against the allowances. Three times what the plan costs, in list-price terms. I wanted to
+know where it went and whether any of it was avoidable.
+
+This is what the data showed, including one mistake that cost 46% of a model's five-hour
+budget in 20 minutes.
+
+## The meter is per model, not per account
+
+OpenCode Go does not give you one budget. Each model has its own monthly allowance, and each
+one has a five-hour cap at 20% of that allowance and a weekly cap at 50%. Nothing rolls
+over.
+
+On the $10 plan, the bands that mattered:
+
+| Allowance | Models |
+|---|---|
+| $100 | DeepSeek V4.1 Flash |
+| $60 | GLM-5.3-Flash, Kimi K2.7 Code, LongCat 2.0, MiMo, MiniMax M3, Qwen3.7 Plus |
+| $30 | Gemini 4 Argon, Qwen3.8 Flash, Hy4 |
+| $15 | DeepSeek V4 Pro, GLM-5.3, Grok 4.7, Kimi K3.1 Pro, Claude Haiku 5.5, GPT 6 Luna |
+
+The useful consequence is that a second cheap model buys capacity, not savings. Two $60
+models are two budgets, and a fan-out agent on GLM-5.3-Flash cannot starve the interactive
+session on Flash.
+
+The awkward consequence is the $15 band. Every frontier model sits in it, and $3 per five
+hours is roughly one heavy hour of work. Escalating means switching deliberately, doing the
+hard part, and switching back.
+
+Two models have peak pricing: DeepSeek V4 Pro and V4.1 Flash cost double between 02:00 and
+05:00 and between 07:00 and 11:00 local, Monday to Friday. Most of my working day is
+off-peak, but a long morning session on V4 Pro eats its five-hour cap twice as fast. That
+one line in the pricing table explains why the escalation model is a tool, not a default.
+
+## What the tokens actually are
+
+Over those 30 days, the database recorded 23,352 assistant messages:
+
+| | Tokens |
+|---|---|
+| Fresh input | 94.8M |
+| Output | 6.66M |
+| Cache read | **3,197M** |
+
+Cache read is 97% of the raw volume. It is also about fifty times cheaper than fresh input
+on Flash ($0.003/M against $0.15/M). Optimizing the biggest number in that table would mean
+optimizing the cheapest thing in it. The interesting total is the one that is small and
+expensive: fresh input, plus the output tokens, plus whatever the model had to re-read at
+full price.
+
+At list prices the 30-day split came out roughly 43% fresh input, 29% cache read, 12%
+output, and 16% premium-tier models. Cache still matters because the context keeps growing:
+a 200K-token conversation read once per turn at $0.003/M is cheap, and read 200 times is not.
+
+## The sweet spot is 21 to 50 messages
+
+I bucketed the Flash sessions by length and computed dollars per assistant message. The
+pattern is two curves crossing:
+
+| Assistant messages | Avg context per message | $/message |
+|---|---|---|
+| 1–5 | 15K | $0.0054 |
+| 6–20 | 30K | $0.0023 |
+| **21–50** | **53K** | **$0.0017** |
+| 51–150 | 102K | $0.0026 |
+| 150+ | 210K | $0.0031 |
+
+Short sessions are expensive per message because every turn pays the 10–15K fixed prompt
+uncached. Long sessions are expensive because every turn re-reads a context that has grown
+past 100K.
+
+The bottom is 21 to 50 messages, with 50K to 80K of context. The practical rule I took from
+it: one task per session, not one question per session. Splitting a healthy session in three
+pays the prompt three times; letting one run to 800 messages pays the context forever.
+
+The tail is where the money is. The top 10 sessions were 31% of the month, the top 50 were
+70%. The worst one ran 857 messages and cost $2.80, with an average context of 419K tokens
+per turn.
+
+## Two routing mistakes
+
+Neither of these was about model quality.
+
+### Subagents inherit the session model
+
+OpenCode subagents use their own model only if their definition pins one. Otherwise they
+inherit whatever the session is running. I had pinned my custom agents and left the built-in
+`explore` and `general` alone.
+
+One session started on Gemini 4 Argon spawned two explores. They read 1.05M fresh input and
+3.37M cached tokens between them, which at Gemini's $2/$10/$0.10 rates came to about
+**$2.76**. Gemini's five-hour cap is $6, so delegation alone used 46% of it in 20 minutes.
+The parent session had not done anything wrong; it had simply lent its price to every child.
+
+The fix is a partial override in `opencode.json`. A built-in agent keeps its prompt and
+permissions, and only the model changes:
+
+```jsonc
+{
+  "agents": {
+    "explore": { "model": "opencode-go/glm-5.3-flash#low" },
+    "general": { "model": "opencode-go/glm-5.3-flash#low" }
+  }
+}
+```
+
+`opencode api get /api/agent` confirms the resolved model. Since the change, a frontier
+session can delegate at fan-out prices.
+
+### Cached reads are not cheap on every model
+
+Grok 4.7 costs $2/M in and $6/M out, which looks like a normal mid-tier price. Its cached
+read is $0.50/M. On a session carrying a 3.4M-token cache, that line alone is $1.69. The
+input and output columns were fine; the cache column made it the most expensive model in my
+roster for long agent runs.
+
+That does not make Grok useless. It makes it wrong as a default and fine as a pinned model
+for short, adversarial review work, which is where it now sits.
+
+## Pruning the catalogue
+
+At one point the picker had around 40 models and I could not tell which were worth using. I
+disabled everything I had not chosen, with one key per model:
+
+```jsonc
+{
+  "providers": {
+    "opencode-go": {
+      "models": {
+        "kimi-k2.7-code": { "disabled": true },
+        "qwen3.8-max": { "disabled": true }
+      }
+    }
+  }
+}
+```
+
+`opencode models` then returns exactly the ten I keep: seven Go models, plus three free ones.
+
+Two things went wrong while pruning.
+
+Crouton and Pulse, the stealth free models, are region-gated. Both answer "This model is not
+available in your country" in Italy, which is also why the third free slot went to Beam Free
+after testing it with a one-line prompt.
+
+The catalogue also renames model IDs between refreshes. `hy4-preview` became `hy4`, my
+disable key still pointed at the old ID, and a $30 model quietly reappeared in the picker.
+Diffing `opencode models` against the intended roster after a provider update is now part of
+the routine.
+
+## The token-saving stack
+
+Four things do the work, and none of them is a model choice.
+
+**rtk compresses shell output.** It rewrites commands and filters noisy output before the
+model sees it. Over 32,753 commands it reports 129.9M tokens saved, 87.4% of the raw output.
+That is the largest single reduction in the setup, and it applies to the tool I call most.
+
+**tokensave replaces grep-and-read with a code graph.** It answers "where is this used" and
+"what calls this" without dumping whole files into the context. The rule is to use it for
+code research, and to reserve `read` for the file I am about to edit.
+
+**Read discipline.** 3,157 `read` calls in 30 days. Paging with `offset` and `limit` instead
+of pulling a whole file can be the difference between 2K and 40K tokens, and the model rarely
+needs the whole file.
+
+**Compaction is set to fire.** OpenCode's `buffer` setting is the share of the window kept
+*free*, and the default is 15%. On a 1M-token window that means compaction starts at 850K,
+so in practice it never fired: six compactions in 30 days. I set it to 75%, which compacts at
+250K and keeps about 15K tokens of recent turns verbatim:
+
+```jsonc
+{ "compaction": { "buffer": "75%" } }
+```
+
+The direction of that setting is easy to get backwards. A larger buffer means compaction
+starts sooner, not later.
+
+## Skills and the fixed prompt
+
+I have 43 skill directories between `~/.config/opencode/skills` and `~/.agents/skills`, and
+the index goes into every request. The AGENTS.md file, the memory index, and the skill list
+add up to 10K to 15K tokens before I type anything.
+
+That sounds like the obvious thing to trim. It is not, at least not for money. After the
+first turn the fixed prompt is a cache read at $0.003/M, roughly 1% of the monthly bill.
+Trimming it changes how the model behaves, not what it costs.
+
+Skills earn their place differently. A skill that stops the agent from re-deriving a workflow
+saves turns, and a saved turn is worth more than a cached paragraph. My dotfiles skill
+encodes the collect, check, commit loop, including the rule that a generated file must never
+be hand-edited. The model reads the procedure once instead of discovering it by breaking
+something.
+
+The catalogue is small on purpose: eight domain agents, and every subagent carries an
+explicit model. That last part matters. An unpinned subagent inherits the session model,
+which is exactly the bug that cost $2.76.
+
+## What I would do again
+
+1. Sum the `cost` column before optimizing anything. The model you think is expensive may
+   not be.
+2. Pin every agent, including the built-ins.
+3. Disable every model you have not chosen, and keep the list short enough to recognize.
+4. Watch cached-read price, not just input and output.
+5. Set compaction once you know your window, and read the setting twice.
+6. Keep one task per session, and let it run to 50 messages rather than 150.
+
+The changes should bring the same month down to $26–28, with no model or instruction
+removed. That is an estimate from the bucket data, not a measurement yet; the compaction
+change went in today, and I will check the next 30 days against it.
+
+The part that surprised me is how little of this was about model quality. The workhorse was
+already 97% of the sessions. The expensive part was the defaults around it: who inherits the
+price, what the context re-reads every turn, and how much output reaches the model at all.
+
+If you are running OpenCode on Go, the query that starts the whole exercise is one line:
+
+```bash
+sqlite3 ~/.local/share/opencode/opencode.db \
+  "SELECT ROUND(SUM(cost),2) FROM session_v2
+   WHERE time_created > (strftime('%s','now') - 30*86400) * 1000;"
+```
